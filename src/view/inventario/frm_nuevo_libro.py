@@ -1,4 +1,3 @@
-# Ubicación: src/view/frm_nuevo_libro.py
 import customtkinter as ctk
 
 class FrmNuevoLibro(ctk.CTkFrame):
