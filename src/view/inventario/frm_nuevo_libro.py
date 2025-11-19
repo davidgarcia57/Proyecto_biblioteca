@@ -16,15 +16,15 @@ class FrmNuevoLibro(ctk.CTkFrame):
         self.entry_titulo.pack(pady=5)
 
         # Input: ISBN
-        self.entry_isbn = ctk.CTkEntry(self, placeholder_text="ISBN (020)", width=300)
+        self.entry_isbn = ctk.CTkEntry(self, placeholder_text="ISBN", width=300)
         self.entry_isbn.pack(pady=5)
 
         # Input: Clasificación
-        self.entry_clasif = ctk.CTkEntry(self, placeholder_text="Clasificación (050)", width=300)
+        self.entry_clasif = ctk.CTkEntry(self, placeholder_text="Clasificación", width=300)
         self.entry_clasif.pack(pady=5)
         
         # Input: ID Editorial (Por ahora manual, luego haremos un ComboBox)
-        self.entry_editorial = ctk.CTkEntry(self, placeholder_text="ID Editorial (Número)", width=300)
+        self.entry_editorial = ctk.CTkEntry(self, placeholder_text="ID Editorial", width=300)
         self.entry_editorial.pack(pady=5)
 
         # Botón Guardar
