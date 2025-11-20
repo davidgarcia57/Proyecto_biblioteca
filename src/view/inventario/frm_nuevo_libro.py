@@ -21,7 +21,6 @@ class FrmNuevoLibro(ctk.CTkScrollableFrame):
         # Siempre en estos seran dos, el entry y el label para que se ponga tanto detro como fuera de la caja, en este caso la fila 2 y 3
         self.entry_titulo = self.crear_input("Título de la Obra *", 2, 0, 2) 
         
-<<<<<<< HEAD
         # Título
         self.lbl_titulo = ctk.CTkLabel(self, text="Ficha de Ingreso - Libros", font=("Arial", 20, "bold"))
         self.lbl_titulo.pack(pady=10)
@@ -41,16 +40,6 @@ class FrmNuevoLibro(ctk.CTkScrollableFrame):
         # Input: ID Editorial (Por ahora manual, luego haremos un ComboBox)
         self.entry_editorial = ctk.CTkEntry(self, placeholder_text="ID Editorial", width=300)
         self.entry_editorial.pack(pady=5)
-=======
-        # Fila 4 (Labels) y 5 (Entries)
-        self.entry_isbn = self.crear_input("ISBN (020)", 4, 0)
-        self.entry_clasif = self.crear_input("Clasificación (050)", 4, 1)
-        
-        # Fila 6 (Labels) y 7 (Entries)
-        self.entry_serie = self.crear_input("Serie (440)", 6, 0)
-        self.entry_idioma = self.crear_input("Idioma (Default: SPA)", 6, 1)
-        self.entry_idioma.insert(0, "SPA") #Esto lo agarre de un ejemplo que vi, creo que lo podemos usar para que los usuarios sepan que es cada cosa, como una guia
->>>>>>> 464ecfc27a5e9ce4ec3440ffc0d5683b428acdc7
 
         # Fila 8 Aquí puse lo de los codigos de ilustracion
         self.lbl_ilustracion = ctk.CTkLabel(self, text="Tipo de Ilustración")
