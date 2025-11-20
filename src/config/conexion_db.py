@@ -6,7 +6,7 @@ class ConexionBD:
         self.host = "localhost"
         self.user = "root"
         self.password = ""
-        self.database = "biblioteca"
+        self.database = "biblioteca_normalizada" #Solo cambie la BD por la actual
         self.connection = None
 
     def conectar(self):
