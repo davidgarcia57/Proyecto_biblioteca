@@ -3,8 +3,8 @@ from src.model.Autor import Autor
 from src.model.Editorial import Editorial
 from src.model.Ejemplar import Ejemplar
 
-from src.dao.obra_dao import ObraDAO
-from src.dao.ejemplar_dao import EjemplarDAO
+from src.dao.Obra_dao import ObraDAO
+from src.dao.Ejemplar_dao import EjemplarDAO
 from src.view.inventario.frm_nuevo_libro import FrmNuevoLibro
 
 class CatalogoController:
