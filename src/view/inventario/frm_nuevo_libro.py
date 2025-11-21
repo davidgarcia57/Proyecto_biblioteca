@@ -141,3 +141,63 @@ class FrmNuevoLibro(ctk.CTkScrollableFrame):
     def mostrar_mensaje(self, mensaje, es_error=False):
         color = "red" if es_error else "green"
         self.lbl_mensaje.configure(text=mensaje, text_color=color)
+
+    #Login de usuario
+    ctk.set_appearance_mode("light")
+
+    # Ventana principal
+    root = ctk.CTk()
+    root.title("Biblioteca Central")
+    root.geometry("750x500")
+
+    # Tarjeta central
+    frame = ctk.CTkFrame(root, width=350, height=250, corner_radius=20, fg_color="#F3E7D2")
+    frame.place(relx=0.5, rely=0.5, anchor="center")
+
+    # Título
+    titulo = ctk.CTkLabel(frame, text="BIBLIOTECA", font=("Georgia", 22, "bold"), text_color="#5a3b2e")
+    titulo.place(relx=0.5, y=20, anchor="n")
+
+    sub = ctk.CTkLabel(frame, text="Tu portal al conocimiento", font=("Georgia", 14), text_color="#7a5a44")
+    sub.place(relx=0.5, y=55, anchor="n")
+
+    # Campo usuario
+    usuario = ctk.CTkEntry(
+        frame,
+        placeholder_text="Nombre de usuario",
+        width=250,
+        height=40,
+        corner_radius=10
+    )
+    usuario.place(relx=0.5, y=110, anchor="center")
+
+    # Campo contraseña
+    password = ctk.CTkEntry(
+        frame,
+        placeholder_text="Contraseña",
+        width=250,
+        height=40,
+        show="*",
+        corner_radius=10
+    )
+    password.place(relx=0.5, y=160, anchor="center")
+
+    # Botón
+    btn = ctk.CTkButton(
+        frame,
+        text="INICIAR SESIÓN",
+        width=180,
+        height=40,
+        corner_radius=10,
+        fg_color="#A7744A"
+    )
+    btn.place(relx=0.5, y=210, anchor="center")
+
+    # Links
+    link1 = ctk.CTkLabel(root, text="¿Olvidaste tu contraseña?", text_color="#5a3b2e", cursor="hand2")
+    link1.place(relx=0.35, rely=0.78)
+
+    link2 = ctk.CTkLabel(root, text="Registrarse", text_color="#5a3b2e", cursor="hand2")
+    link2.place(relx=0.60, rely=0.78)
+
+    root.mainloop()
