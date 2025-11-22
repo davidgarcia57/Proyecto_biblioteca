@@ -38,7 +38,7 @@ class CatalogoController:
             # --- PASO 2: Obra ---
             obra = Obra(
                 titulo=datos["titulo"],
-                id_editorial=id_editorial, # Usamos el ID que nos devolvió el modelo Editorial
+                id_editorial=id_editorial,
                 isbn=datos.get("isbn"),
                 idioma=datos.get("idioma", "Español"),
                 anio_publicacion=datos.get("anio"),
@@ -47,10 +47,33 @@ class CatalogoController:
                 paginas=datos.get("paginas"),
                 dimensiones=datos.get("dimensiones"),
                 serie=datos.get("serie"),
+                tomo=datos.get("tomo"),        # Nuevo
+                volumen=datos.get("volumen"),  # Nuevo
                 descripcion=datos.get("descripcion"),
                 temas=datos.get("temas")
             )
             id_obra = obra.guardar(cursor)
+
+            # --- PASO 3: Autor y Relación ---
+            autor = Autor(datos.get("autor_nombre", "Anónimo"))
+            id_autor = autor.guardar(cursor)
+            
+            obra.relacionar_autor(cursor, id_autor)
+
+            # --- PASO 4: Ejemplar ---
+            # Nota: Como en la vista no tienes un campo visual para "Ubicación Física" (Estante/Pasillo),
+            # lo dejamos como "General" por defecto.
+            ejemplar = Ejemplar(
+                codigo_barras=datos["codigo_barras"],
+                id_obra=id_obra,
+                numero_copia=datos.get("numero_copia", "Copia 1"),
+                ubicacion_fisica="General" 
+            )
+
+            if ejemplar.existe(cursor):
+                raise Exception(f"El código de barras {ejemplar.codigo_barras} ya existe.")
+            
+            ejemplar.guardar(cursor)
 
             # --- PASO 3: Autor y Relación ---
             autor = Autor(datos.get("autor_nombre", "Anónimo"))

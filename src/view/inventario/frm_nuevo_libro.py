@@ -130,17 +130,24 @@ class FrmNuevoLibro(ctk.CTkScrollableFrame):
             "serie": self.entry_serie.get(),
             "idioma": self.entry_idioma.get(),
             "descripcion": self.entry_notas.get(),
+            
             "autor_nombre": self.entry_autor.get(),
             "editorial_nombre": self.entry_editorial.get(),
             "lugar_publicacion": self.entry_lugar.get(),
+            
             "edicion": self.entry_edicion.get(),
             "anio": self.entry_anio.get(),
             "paginas": self.entry_paginas.get(),
             "dimensiones": self.entry_dimensiones.get(),
-            "codigo_barras": self.entry_adquisicion.get(), 
-            "ubicacion": self.entry_ejemplar.get(), 
             
-            # Campo por si me falto agregar algo ajaja
+            # Campos nuevos de Obra
+            "tomo": self.entry_tomo.get(),
+            "volumen": self.entry_volumen.get(),
+
+            # Datos del Ejemplar
+            "codigo_barras": self.entry_adquisicion.get(),
+            "numero_copia": self.entry_ejemplar.get(),
+            
             "temas": "" 
         }
         self.controller.registrar_libro_completo(datos)

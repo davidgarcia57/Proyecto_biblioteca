@@ -1,11 +1,12 @@
 from datetime import datetime
 
 class Ejemplar:
-    def __init__(self, codigo_barras, id_obra, estado="Disponible", ubicacion_fisica=None):
-        self.codigo_barras = codigo_barras #PK
-        self.id_obra = id_obra             #FK
+    def __init__(self, codigo_barras, id_obra, numero_copia="Copia 1", ubicacion_fisica="General", estado="Disponible"):
+        self.codigo_barras = codigo_barras # PK
+        self.id_obra = id_obra             # FK
+        self.numero_copia = numero_copia   # Nuevo campo (ej. "Copia 1")
+        self.ubicacion_fisica = ubicacion_fisica # ej. "Pasillo 3"
         self.estado = estado
-        self.ubicacion_fisica = ubicacion_fisica
         self.fecha_adquisicion = datetime.now()
 
     def existe(self, cursor):
@@ -15,8 +16,15 @@ class Ejemplar:
 
     def guardar(self, cursor):
         sql = """
-            INSERT INTO ejemplares (codigo_barras, id_obra, estado, ubicacion_fisica, fecha_adquisicion) 
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO ejemplares (codigo_barras, id_obra, numero_copia, ubicacion_fisica, estado, fecha_adquisicion) 
+            VALUES (%s, %s, %s, %s, %s, %s)
         """
-        valores = (self.codigo_barras, self.id_obra, self.estado, self.ubicacion_fisica, self.fecha_adquisicion)
+        valores = (
+            self.codigo_barras, 
+            self.id_obra, 
+            self.numero_copia, 
+            self.ubicacion_fisica, 
+            self.estado, 
+            self.fecha_adquisicion
+        )
         cursor.execute(sql, valores)
