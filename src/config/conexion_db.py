@@ -6,7 +6,7 @@ class ConexionBD:
         self.host = "localhost"
         self.user = "root"
         self.password = ""
-        self.database = "biblioteca_normalizada" #Solo cambie la BD por la actual
+        self.database = "biblioteca_normalizada" # Aqui el nombre de la BD
         self.connection = None
 
     def conectar(self):
@@ -25,4 +25,3 @@ class ConexionBD:
     def cerrar(self):
         if self.connection and self.connection.is_connected():
             self.connection.close()
-            print("Conexion cerrada.")

@@ -123,15 +123,13 @@ class FrmNuevoLibro(ctk.CTkScrollableFrame):
         return entry
 
     def evento_guardar(self):
-        codigo_ilustracion = self.cbo_ilustracion.get().split(" - ")[0]
         datos = {
             "titulo": self.entry_titulo.get(),
             "isbn": self.entry_isbn.get(),
             "clasificacion": self.entry_clasif.get(),
             "serie": self.entry_serie.get(),
             "idioma": self.entry_idioma.get(),
-            "codigo_ilustracion": codigo_ilustracion,
-            "notas": self.entry_notas.get(),
+            "descripcion": self.entry_notas.get(),
             "autor_nombre": self.entry_autor.get(),
             "editorial_nombre": self.entry_editorial.get(),
             "lugar_publicacion": self.entry_lugar.get(),
@@ -139,13 +137,14 @@ class FrmNuevoLibro(ctk.CTkScrollableFrame):
             "anio": self.entry_anio.get(),
             "paginas": self.entry_paginas.get(),
             "dimensiones": self.entry_dimensiones.get(),
-            "no_adquisicion": self.entry_adquisicion.get(),
-            "num_ejemplar": self.entry_ejemplar.get(),
-            "tomo": self.entry_tomo.get(),
-            "volumen": self.entry_volumen.get()
+            "codigo_barras": self.entry_adquisicion.get(), 
+            "ubicacion": self.entry_ejemplar.get(), 
+            
+            # Campo por si me falto agregar algo ajaja
+            "temas": "" 
         }
         self.controller.registrar_libro_completo(datos)
     
     def mostrar_mensaje(self, mensaje, es_error=False):
-        color = "red" if es_error else "#2E7D32" # Verde oscuro para éxito
+        color = "red" if es_error else "#2E7D32" # Verde oscuro para más placer
         self.lbl_mensaje.configure(text=mensaje, text_color=color)
