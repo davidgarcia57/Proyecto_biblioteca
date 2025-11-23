@@ -4,6 +4,7 @@ class FrmMenuPrincipal(ctk.CTkFrame):
     """
     Frame del menú principal. 
     """
+class FrmMenuPrincipal(ctk.CTkFrame):
     def __init__(self, master, controller=None):
         super().__init__(master)
         self.controller = controller
@@ -128,18 +129,19 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         self.btn_buscar = ctk.CTkButton(
             self.main_container,
             text="🔎 BUSCAR LIBROS",
-            command=lambda: print("Navegar a Buscar Libros (placeholder)"),
+            command=self.controller.mostrar_busqueda,
             **self.MAIN_BTN_CONFIG
         )
         self.btn_buscar.grid(row=0, column=1, padx=BTN_PADX, pady=BTN_PADY, sticky="nsew")
 
-        # Botón 3: Agregar Libros 
+        # Botón 3: Agregar
         self.btn_agregar = ctk.CTkButton(
             self.main_container,
             text="➕ AGREGAR LIBROS",
+            command=self.controller.mostrar_catalogo, # <--- Navega al formulario
             **self.MAIN_BTN_CONFIG
         )
-        self.btn_agregar.grid(row=1, column=0, padx=BTN_PADX, pady=BTN_PADY, sticky="nsew")
+        self.btn_agregar.grid(row=1, column=0, padx=25, pady=25, sticky="nsew")
 
         # Botón 4: Otro 
         self.btn_otro = ctk.CTkButton(
@@ -149,4 +151,13 @@ class FrmMenuPrincipal(ctk.CTkFrame):
             **self.MAIN_BTN_CONFIG
         )
         self.btn_otro.grid(row=1, column=1, padx=BTN_PADX, pady=BTN_PADY, sticky="nsew")
+
+        # Botón 5: Cerrar Sesión
+        self.btn_cerrar_sesion = ctk.CTkButton(
+            self.header_frame, 
+            text="Cerrar Sesión", 
+            command=self.controller.mostrar_login,  # <--- Llama a volver al login
+            **self.MAIN_BTN_CONFIG
+        )
+        self.btn_cerrar_sesion.grid(row=0, column=0, sticky="w", padx=10)
         

@@ -91,6 +91,15 @@ class FrmNuevoLibro(ctk.CTkFrame):
     # ==========================================
     #             LÓGICA VISUAL
     # ==========================================
+    def validar_campo(self, entry_widget):
+        """Retorna True si tiene texto, False si está vacío y lo pinta de rojo"""
+        if not entry_widget.get().strip():
+            entry_widget.configure(border_color="red")
+            return False
+        else:
+            entry_widget.configure(border_color=self.COLOR_BOTON) # Restaura color original
+            return True
+        
     def crear_encabezado_paso(self, parent, texto):
         """Crea el título con la línea divisoria abajo, estilo original"""
         frame_titulo = ctk.CTkFrame(parent, fg_color="transparent")
@@ -222,29 +231,71 @@ class FrmNuevoLibro(ctk.CTkFrame):
         self.steps[index].pack(fill="both", expand=True)
         self.lbl_paginacion.configure(text=f"Paso {index + 1} de {len(self.steps)}")
 
-        # Configurar botones
+        # --- LÓGICA DEL BOTÓN ATRÁS ---
         if index == 0:
-            self.btn_atras.configure(state="disabled", fg_color="gray")
+            # En la primera página, el botón sirve para SALIR al menú
+            self.btn_atras.configure(
+                state="normal", 
+                text="Cancelar",      # Cambiamos texto para claridad
+                fg_color="#D32F2F",   # Un rojo suave para indicar salida/cancelar
+                hover_color="#B71C1C"
+            )
         else:
-            self.btn_atras.configure(state="normal", fg_color=self.COLOR_HOVER)
+            # En las otras páginas, sirve para RETROCEDER
+            self.btn_atras.configure(
+                state="normal", 
+                text="Atrás", 
+                fg_color="gray",
+                hover_color="#666666"
+            )
 
+        # Configurar botón Siguiente
         if index == len(self.steps) - 1:
-            self.btn_siguiente.configure(text="GUARDAR REGISTRO", fg_color="#2E7D32") # Verde
+            self.btn_siguiente.configure(text="GUARDAR REGISTRO", fg_color="#2E7D32")
         else:
             self.btn_siguiente.configure(text="Siguiente", fg_color=self.COLOR_BOTON)
 
     def siguiente_paso(self):
-        if self.current_step < len(self.steps) - 1:
+        # --- VALIDACIÓN DEL PASO 1 ---
+        if self.current_step == 0:
+            # Validar Título (Oblogatorio)
+            es_titulo_valido = self.validar_campo(self.entry_titulo)
+            if not es_titulo_valido:
+                self.mostrar_mensaje("El titulo es obligatorio", es_error=True)
+                return # Esto hace que no se pueda avanzar
+            
+        # --- VALIDACIÓN DEL PASO 2 ---
+        if self.current_step == 1:
+            #Validar Autor (Obligatorio)
+            es_autor_valido = self.validar_campo(self.entry_autor)
+            if not es_autor_valido:
+                self.mostrar_mensaje("El autor es obligatorio", es_error=True)
+
+        # --- VALIDACIÓN DEL PASO 4 (Antes de guardar) ---
+        if self.current_step == len(self.steps) - 1:
+            # Validar Código de Barras / Adquisición
+            if not self.validar_campo(self.entry_adquisicion):
+                self.mostrar_mensaje("El No. Adquisición es obligatorio", es_error=True)
+                return
+            
+            # Si todo está bien, guardamos
+            self.evento_guardar()
+        
+        else:
+            # Avanzar normal si no es el último paso
             self.current_step += 1
             self.mostrar_paso(self.current_step)
-        else:
-            self.evento_guardar()
+            self.mostrar_mensaje("") # Limpiar mensajes de error previos
 
     def anterior_paso(self):
         if self.current_step > 0:
+            # Comportamiento normal: ir atrás
             self.current_step -= 1
             self.mostrar_paso(self.current_step)
-
+        else:
+            # Comportamiento nuevo: Si estamos en el paso 0, volver al menú
+            self.controller.volver_al_menu()
+            
     def evento_guardar(self):
         datos = {
             "titulo": self.entry_titulo.get(),

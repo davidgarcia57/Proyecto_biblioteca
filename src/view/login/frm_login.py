@@ -1,7 +1,7 @@
 import customtkinter as ctk
 
 class FrmLogin(ctk.CTkFrame):
-    def __init__(self, master, controller):
+    def __init__(self, master, controller=None):
         super().__init__(master)
         self.controller = controller
         

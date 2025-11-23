@@ -1,11 +1,12 @@
 import customtkinter as ctk
 from src.controller.loginController import LoginController
 from src.controller.catalogo_controller import CatalogoController
-# CAMBIO IMPORTANTE: Usar modo "light" para que combinen los colores beige/café
-ctk.set_appearance_mode("light")  
-ctk.set_default_color_theme("blue")
+from src.view.circulacion.frm_menu import FrmMenuPrincipal
+from src.view.inventario.frm_buscar_libro import FmrBuscarLibro
 
-ctk.set_appearance_mode("System")  
+
+# Configuración de tema
+ctk.set_appearance_mode("light")  
 ctk.set_default_color_theme("blue")
 
 class App(ctk.CTk):
@@ -13,40 +14,52 @@ class App(ctk.CTk):
         super().__init__()
         
         self.title("Sistema de Biblioteca - Congreso de Durango")
-        self.geometry("1100x800")
+        self.geometry("1024x780")
         self.minsize(800, 600)
 
-        # Contenedor principal donde pondremos las vistas (Login o Catalogo)
+        # Contenedor principal
         self.container = ctk.CTkFrame(self)
         self.container.pack(fill="both", expand=True)
 
-        # 1. Al arrancar, mostramos el Login
+        # Iniciamos en el Login
         self.mostrar_login()
 
     def limpiar_contenedor(self):
-        # Elimina cualquier vista que esté actualmente en pantalla
+        """Elimina la vista actual para mostrar una nueva."""
         for widget in self.container.winfo_children():
             widget.destroy()
 
     def mostrar_login(self):
         self.limpiar_contenedor()
-        # Invocamos al controlador de Login
         self.login_controller = LoginController(self.container, self)
         self.login_controller.view.pack(fill="both", expand=True)
 
     def iniciar_sesion_exitoso(self, usuario_obj):
-        """
-        Este método es llamado por el LoginController cuando los datos son correctos.
-        """
+        """Método llamado desde el Login cuando las credenciales son correctas."""
         self.usuario_actual = usuario_obj
-        # Cambiamos la pantalla al Catálogo
-        self.mostrar_catalogo()
+        self.mostrar_menu_principal()
+
+    def mostrar_menu_principal(self):
+        self.limpiar_contenedor()
+        # Pasamos 'self' como controlador para que el menú pueda llamar a mostrar_catalogo
+        self.menu_view = FrmMenuPrincipal(self.container, controller=self)
+        self.menu_view.pack(fill="both", expand=True)
 
     def mostrar_catalogo(self):
         self.limpiar_contenedor()
-        # Invocamos al controlador del Catálogo, pasando el ID del usuario real
-        self.catalogo_controller = CatalogoController(self.container, id_usuario_actual=self.usuario_actual.id_usuario)
+        # Pasamos 'app_main=self' para que el catálogo pueda volver al menú con el botón 'Atrás'
+        self.catalogo_controller = CatalogoController(
+            self.container, 
+            id_usuario_actual=self.usuario_actual.id_usuario, 
+            app_main=self
+        )
         self.catalogo_controller.view.pack(fill="both", expand=True)
+    
+    def mostrar_busqueda(self):
+        self.limpiar_contenedor()
+        # Pasamos 'self' como controlador para que el menú pueda llamar a mostrar_catalogo
+        self.menu_view = FmrBuscarLibro(self.container, controller=self)
+        self.menu_view.pack(fill="both", expand=True)
 
 if __name__ == "__main__":
     app = App()

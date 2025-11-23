@@ -10,52 +10,84 @@ class FmrBuscarLibro(ctk.CTkFrame):
     COLOR_HOVER = "#8c5e3c"
     
     def __init__(self, master, controller=None):
-    # Esto hace que funsione el Frame y aqui ponemos el color de fondo 
-    # y preparamos el texto para que se guarde lo que escribira el usuario
         super().__init__(master)
         self.controller = controller 
         
         self.configure(fg_color=self.COLOR_FONDO)
         self.texto_busqueda = StringVar(value="")
         
+        # Grid principal 
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1) # El contenido se expande, el header no
+
+        # --- HEADER CON BOTÓN VOLVER ---
+        self.crear_header()
+        
+        # --- ÁREA DE BÚSQUEDA ---
         self.crear_elementos_busqueda()
 
-    def crear_elementos_busqueda(self):
-        # Este metodo tiene las instruciones para dibujar las caja de texto y boton
-        # y aqui organizara su posicion dentro del Frame usando grid
+    def crear_header(self):
+        header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        header_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(20, 0))
         
-        self.grid_columnconfigure(0, weight=1) 
-        self.grid_columnconfigure(1, weight=0) 
+        self.btn_volver = ctk.CTkButton(
+            header_frame,
+            text="⬅ Volver al Menú",
+            font=("Arial", 12, "bold"),
+            fg_color="transparent",
+            text_color=self.COLOR_BOTON,
+            border_width=2,
+            border_color=self.COLOR_BOTON,
+            hover_color=self.COLOR_FONDO, # Efecto sutil
+            width=100,
+            command=self.volver_menu
+        )
+        self.btn_volver.pack(side="left")
 
+        lbl_titulo = ctk.CTkLabel(
+            header_frame, 
+            text="Catálogo de Libros", 
+            font=("Georgia", 24, "bold"), 
+            text_color=self.COLOR_TEXTO
+        )
+        lbl_titulo.pack(side="left", padx=20)
+
+    def crear_elementos_busqueda(self):
+        # Contenedor para centrar la búsqueda
+        frame_busqueda = ctk.CTkFrame(self, fg_color="transparent")
+        frame_busqueda.grid(row=1, column=0, sticky="n", pady=30)
+        
         self.txt_busqueda = ctk.CTkEntry(
-            self, 
+            frame_busqueda, 
             textvariable=self.texto_busqueda,
             placeholder_text="Título, Autor o ISBN del libro...",
             height=40,
+            width=400, # Un poco más ancho
             fg_color="white", 
             text_color="black",
             border_color=self.COLOR_BOTON,
             border_width=2,
-            font=("Arial", 16)
+            font=("Arial", 14)
         )
-        self.txt_busqueda.grid(row=0, column=0, padx=(20, 10), pady=20, sticky="ew")
+        self.txt_busqueda.grid(row=0, column=0, padx=(0, 10))
 
         self.btn_buscar = ctk.CTkButton(
-            self,
+            frame_busqueda,
             text="🔍 BUSCAR",
-            width=150,
+            width=120,
             height=40,
-            font=("Georgia", 16, "bold"),
+            font=("Georgia", 14, "bold"),
             fg_color=self.COLOR_BOTON,
             hover_color=self.COLOR_HOVER,
             text_color="white",
             command=self.placeholder_funcion_buscar 
         )
-        self.btn_buscar.grid(row=0, column=1, padx=(10, 20), pady=20, sticky="e")
-        
+        self.btn_buscar.grid(row=0, column=1)
         
     def placeholder_funcion_buscar(self):
-        # Este método se ejecuta cuando se presiona el botón "BUSCAR".
-        # Aquí se conectará la lógica real de búsqueda en el futuro.
         termino = self.texto_busqueda.get() 
         print(f"Botón Buscar presionado. Se buscaría el término: {termino}")
+
+    def volver_menu(self):
+        if self.controller:
+            self.controller.mostrar_menu_principal()
