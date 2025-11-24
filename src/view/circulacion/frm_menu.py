@@ -70,24 +70,6 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         )
         self.lbl_subtitulo.pack(pady=(5, 15))
 
-
-        # Botón Salir 
-        self.btn_salir = ctk.CTkButton(
-            self.header_frame, 
-            text="Salir", 
-            font=("Georgia", 16, "bold"), 
-            fg_color="transparent", 
-            text_color=self.COLOR_UTILIDAD, 
-            border_color=self.COLOR_UTILIDAD, 
-            border_width=2,
-            hover_color=self.COLOR_HOVER, 
-            width=130,
-            height=45, 
-            corner_radius=10, 
-            command=lambda: print("Salir de la Aplicación (placeholder)")
-        )
-        self.btn_salir.grid(row=0, column=2, sticky="e", padx=10)
-
         # ----------------------------------------------
         # --- 2. BOTONES PRINCIPALES ---
         # ----------------------------------------------

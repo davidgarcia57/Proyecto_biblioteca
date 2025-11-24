@@ -57,7 +57,7 @@ class App(ctk.CTk):
     
     def mostrar_busqueda(self):
         self.limpiar_contenedor()
-        # Pasamos 'self' como controlador para que el menú pueda llamar a mostrar_catalogo
+        # Pasamos 'self' como controlador para que el menú pueda llamar a mostrar_busqueda
         self.menu_view = FmrBuscarLibro(self.container, controller=self)
         self.menu_view.pack(fill="both", expand=True)
 

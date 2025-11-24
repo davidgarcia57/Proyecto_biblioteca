@@ -11,8 +11,8 @@ class FrmLogin(ctk.CTkFrame):
         # --- TARJETA CENTRAL ---
         self.card = ctk.CTkFrame(
             self, 
-            width=350, 
-            height=350, # Un poco más alto para que quepan los mensajes de error
+            width=360, 
+            height=390, # Más alto para mejor espaciado
             corner_radius=20, 
             fg_color="#F3E7D2" # Color Beige
         )
@@ -25,44 +25,53 @@ class FrmLogin(ctk.CTkFrame):
             font=("Georgia", 22, "bold"), 
             text_color="#5a3b2e" # Marrón oscuro
         )
-        self.lbl_titulo.place(relx=0.5, y=30, anchor="n")
+        self.lbl_titulo.place(relx=0.5, y=20, anchor="n")
 
         self.lbl_sub = ctk.CTkLabel(
             self.card, 
             text="Tu portal al conocimiento", 
-            font=("Georgia", 14), 
+            font=("Georgia", 13), 
             text_color="#7a5a44" # Marrón claro
         )
-        self.lbl_sub.place(relx=0.5, y=65, anchor="n")
+        self.lbl_sub.place(relx=0.5, y=55, anchor="n")
 
         # Campo Usuario
         self.entry_user = ctk.CTkEntry(
             self.card,
             placeholder_text="Nombre de usuario",
-            width=250,
+            width=280,
             height=40,
             corner_radius=10,
             border_color="#A7744A"
         )
-        self.entry_user.place(relx=0.5, y=120, anchor="center")
+        self.entry_user.place(relx=0.5, y=110, anchor="center")
 
         # Campo Contraseña
         self.entry_pass = ctk.CTkEntry(
             self.card,
             placeholder_text="Contraseña",
-            width=250,
+            width=280,
             height=40,
             show="*",
             corner_radius=10,
             border_color="#A7744A"
         )
-        self.entry_pass.place(relx=0.5, y=170, anchor="center")
+        self.entry_pass.place(relx=0.5, y=160, anchor="center")
+
+        # Mensaje de error (Oculto por defecto)
+        self.lbl_error = ctk.CTkLabel(
+            self.card, 
+            text="", 
+            text_color="red", 
+            font=("Arial", 11)
+        )
+        self.lbl_error.place(relx=0.5, y=200, anchor="center")
 
         # Botón (Con el color Bronce/Café)
         self.btn_login = ctk.CTkButton(
             self.card,
             text="INICIAR SESIÓN",
-            width=180,
+            width=200,
             height=40,
             corner_radius=10,
             fg_color="#A7744A",
@@ -70,20 +79,28 @@ class FrmLogin(ctk.CTkFrame):
             font=("Georgia", 14, "bold"),
             command=self.evento_login
         )
-        self.btn_login.place(relx=0.5, y=230, anchor="center")
+        self.btn_login.place(relx=0.5, y=245, anchor="center")
 
-        # Mensaje de error (Oculto por defecto)
-        self.lbl_error = ctk.CTkLabel(
-            self.card, 
-            text="", 
-            text_color="red", 
-            font=("Arial", 12)
+        # Botón para cerrar la aplicación (cierra la ventana principal)
+        self.btn_cerrar = ctk.CTkButton(
+            self.card,
+            text="CERRAR",
+            width=120,
+            height=36,
+            corner_radius=10,
+            fg_color="#A7744A",
+            hover_color="#8c5e3c",
+            font=("Georgia", 12, "bold"),
+            command=self.cerrar_aplicacion
         )
-        self.lbl_error.place(relx=0.5, y=270, anchor="center")
+        self.btn_cerrar.place(relx=0.5, y=305, anchor="center")
 
-        # Links decorativos
-        self.link1 = ctk.CTkLabel(self.card, text="¿Olvidaste tu contraseña?", text_color="#5a3b2e", font=("Arial", 11), cursor="hand2")
-        self.link1.place(relx=0.5, y=300, anchor="center")
+        # Atajos y foco
+        self.entry_user.focus()  # foco inicial en usuario
+        # permitir Enter para iniciar sesión desde cualquiera de los entry
+        self.entry_user.bind("<Return>", lambda e: self.evento_login())
+        self.entry_pass.bind("<Return>", lambda e: self.evento_login())
+
 
     def evento_login(self):
         user = self.entry_user.get()
@@ -92,3 +109,13 @@ class FrmLogin(ctk.CTkFrame):
 
     def mostrar_error(self, mensaje):
         self.lbl_error.configure(text=mensaje)
+
+    def cerrar_aplicacion(self):
+        # cierra la ventana principal / aplicación completa
+        toplevel = self.winfo_toplevel()
+        try:
+            toplevel.destroy()
+        except Exception:
+            # como alternativa segura, intentar salir del programa
+            import sys
+            sys.exit(0)
