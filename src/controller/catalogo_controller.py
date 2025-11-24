@@ -66,7 +66,14 @@ class CatalogoController:
                 tomo=datos.get("tomo"),
                 volumen=datos.get("volumen"),
                 descripcion=datos.get("descripcion"),
-                temas=datos.get("temas")
+                temas=datos.get("temas"),
+                ficha_no=datos.get("ficha_no"),
+                autor_corporativo=datos.get("autor_corporativo"),
+                asientos_secundarios=datos.get("asientos_secundarios"),
+                codigo_ilustracion=datos.get("codigo_ilustracion"),
+                analizo=datos.get("analizo"),
+                reviso=datos.get("reviso"),
+                lugar_publicacion=datos.get("lugar_publicacion")
             )
             id_obra = obra.guardar(cursor)
 

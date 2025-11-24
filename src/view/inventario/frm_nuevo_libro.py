@@ -19,6 +19,9 @@ class FrmNuevoLibro(ctk.CTkFrame):
         # --- VARIABLES DE NAVEGACIÓN ---
         self.current_step = 0
         self.steps = [] 
+        
+        # Lista para almacenar las referencias a los checkboxes de ilustraciones
+        self.checks_ilustracion = []
 
         # --- HEADER (Título fijo) ---
         self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -26,7 +29,7 @@ class FrmNuevoLibro(ctk.CTkFrame):
         
         self.lbl_titulo_main = ctk.CTkLabel(
             self.header_frame, 
-            text="Registro Completo de Libros", 
+            text="Ficha de Ingreso de Libros (MARC 21)", 
             font=("Georgia", 26, "bold"), 
             text_color=self.COLOR_TEXTO
         )
@@ -41,7 +44,6 @@ class FrmNuevoLibro(ctk.CTkFrame):
         self.lbl_paginacion.pack(side="right", anchor="s")
 
         # --- CONTENEDOR DE LOS PASOS ---
-        # Importante: fg_color="transparent" para respetar tu fondo beige
         self.container = ctk.CTkFrame(self, fg_color="transparent")
         self.container.pack(fill="both", expand=True, padx=40, pady=10)
 
@@ -97,11 +99,11 @@ class FrmNuevoLibro(ctk.CTkFrame):
             entry_widget.configure(border_color="red")
             return False
         else:
-            entry_widget.configure(border_color=self.COLOR_BOTON) # Restaura color original
+            entry_widget.configure(border_color=self.COLOR_BOTON) 
             return True
         
     def crear_encabezado_paso(self, parent, texto):
-        """Crea el título con la línea divisoria abajo, estilo original"""
+        """Crea el título con la línea divisoria abajo"""
         frame_titulo = ctk.CTkFrame(parent, fg_color="transparent")
         frame_titulo.pack(fill="x", pady=(0, 20))
 
@@ -113,22 +115,19 @@ class FrmNuevoLibro(ctk.CTkFrame):
         )
         lbl.pack(side="left", anchor="w")
 
-        # Línea separadora
         linea = ctk.CTkFrame(parent, height=2, fg_color=self.COLOR_LINEA)
         linea.pack(fill="x", pady=(0, 20))
 
     def crear_input(self, parent, label_text, row, col, colspan=1):
-        """Crea label e input idénticos a tu diseño original"""
-        # Label
+        """Helper para crear labels y entries"""
         lbl = ctk.CTkLabel(
             parent, 
             text=label_text, 
             font=("Georgia", 12, "bold"), 
-            text_color=self.COLOR_TEXTO # Color café
+            text_color=self.COLOR_TEXTO 
         )
         lbl.grid(row=row, column=col, sticky="w", pady=(10, 5), padx=10)
         
-        # Input (Blanco con borde café)
         entry = ctk.CTkEntry(
             parent, 
             placeholder_text=label_text,
@@ -141,182 +140,229 @@ class FrmNuevoLibro(ctk.CTkFrame):
         return entry
 
     # ==========================================
-    # DEFINICIÓN DE PASOS
+    # DEFINICIÓN DE PASOS (Basado en tu Ficha)
     # ==========================================
 
     def crear_paso_1(self):
+        # PASO 1: Datos de Control y Clasificación
         self.frm_step1 = ctk.CTkFrame(self.container, fg_color="transparent")
-        self.frm_step1.columnconfigure((0, 1), weight=1) # Grid de 2 columnas
+        self.frm_step1.columnconfigure((0, 1), weight=1)
         
-        self.crear_encabezado_paso(self.frm_step1, "1. Datos de la Obra")
+        self.crear_encabezado_paso(self.frm_step1, "1. Datos de Ficha y Clasificación")
         
-        # Frame interno para el grid, para que no choque con el encabezado pack
         grid_frame = ctk.CTkFrame(self.frm_step1, fg_color="transparent")
         grid_frame.pack(fill="both", expand=True)
         grid_frame.columnconfigure((0, 1), weight=1)
 
-        self.entry_titulo = self.crear_input(grid_frame, "Título de la Obra *", 0, 0, colspan=2)
-        self.entry_isbn = self.crear_input(grid_frame, "ISBN (020)", 2, 0)
-        self.entry_clasif = self.crear_input(grid_frame, "Clasificación (050)", 2, 1)
-        self.entry_serie = self.crear_input(grid_frame, "Serie (440)", 4, 0)
+        # Fila 0: Ficha y ISBN
+        self.entry_ficha = self.crear_input(grid_frame, "Ficha No. *", 0, 0)
+        self.entry_isbn = self.crear_input(grid_frame, "020 ISBN", 0, 1)
+
+        # Fila 2: Clasificación
+        self.entry_clasif = self.crear_input(grid_frame, "050 Clasificación *", 2, 0, colspan=2)
         
-        # Idioma
-        self.entry_idioma = self.crear_input(grid_frame, "Idioma (Default: SPA)", 4, 1)
+        # --- SECCIÓN DE CÓDIGO DE ILUSTRACIONES (CHECKBOXES) ---
+        lbl_ilus = ctk.CTkLabel(grid_frame, text="Código de ilustraciones (Selección Múltiple)", font=("Georgia", 12, "bold"), text_color=self.COLOR_TEXTO)
+        lbl_ilus.grid(row=4, column=0, sticky="w", padx=10, pady=(10,0))
+        
+        # Usamos ScrollableFrame para que quepan todas las opciones
+        self.scroll_ilustraciones = ctk.CTkScrollableFrame(
+            grid_frame, 
+            height=150, 
+            width=300, 
+            fg_color="white", 
+            border_color=self.COLOR_BOTON, 
+            border_width=1,
+            label_text="Opciones Disponibles",
+            label_text_color=self.COLOR_TEXTO
+        )
+        self.scroll_ilustraciones.grid(row=5, column=0, sticky="ew", padx=10, pady=(5,10))
+        
+        # Lista completa
+        opciones = [
+            "X - Sin ilustraciones", "A - Ilustraciones", "B - Mapa", "C - Retratos", 
+            "D - Fotografías", "E - Planos", "F - Láminas", "G - Música", 
+            "H - Facsímiles", "I - Diagramas", "J - Grabados", "K - Litografía",
+            "L - Grabaciones o discos", "M - Gráficas", "N - Tablas", "P - Laminaciones",
+            "Q - Diskettes", "R - Tablas Genealógicas", "S - Dispositivas", 
+            "T - Formas y formularios", "U - Muestras", "Z - Otros"
+        ]
+        
+        # Generamos los checkboxes dinámicamente
+        self.checks_ilustracion = []
+        for op in opciones:
+            chk = ctk.CTkCheckBox(
+                self.scroll_ilustraciones, 
+                text=op, 
+                text_color="black",
+                fg_color=self.COLOR_BOTON, 
+                hover_color=self.COLOR_HOVER
+            )
+            chk.pack(anchor="w", pady=2, padx=5)
+            self.checks_ilustracion.append(chk)
+
+        self.entry_idioma = self.crear_input(grid_frame, "546 Código de Lengua", 4, 1)
         self.entry_idioma.insert(0, "SPA")
-        
-        self.entry_temas = self.crear_input(grid_frame, "Temas / Palabras Clave", 6, 0, colspan=2)
-        self.entry_descripcion = self.crear_input(grid_frame, "Notas Generales", 8, 0, colspan=2)
 
 
     def crear_paso_2(self):
+        # PASO 2: Autoría y Título
         self.frm_step2 = ctk.CTkFrame(self.container, fg_color="transparent")
-        
-        self.crear_encabezado_paso(self.frm_step2, "2. Autoría y Editorial")
+        self.crear_encabezado_paso(self.frm_step2, "2. Autoría y Título (100, 110, 245, 700)")
 
         grid_frame = ctk.CTkFrame(self.frm_step2, fg_color="transparent")
         grid_frame.pack(fill="both", expand=True)
         grid_frame.columnconfigure((0, 1), weight=1)
 
-        self.entry_autor = self.crear_input(grid_frame, "Nombre del Autor Principal *", 0, 0, colspan=2)
-        self.entry_editorial = self.crear_input(grid_frame, "Nombre de la Editorial", 2, 0)
-        self.entry_lugar = self.crear_input(grid_frame, "Lugar de Publicación", 2, 1)
-        self.entry_anio = self.crear_input(grid_frame, "Año de Publicación", 4, 0)
+        self.entry_autor = self.crear_input(grid_frame, "100 Autor Personal (Principal) *", 0, 0, colspan=2)
+        self.entry_autor_corp = self.crear_input(grid_frame, "110 Autor Corporativo", 2, 0, colspan=2)
+        self.entry_titulo = self.crear_input(grid_frame, "245 Título / Mención de responsabilidad *", 4, 0, colspan=2)
+        self.entry_asientos = self.crear_input(grid_frame, "700 Asientos Secundarios (Coautores)", 6, 0, colspan=2)
 
 
     def crear_paso_3(self):
+        # PASO 3: Edición, Publicación y Descripción
         self.frm_step3 = ctk.CTkFrame(self.container, fg_color="transparent")
-        
-        self.crear_encabezado_paso(self.frm_step3, "3. Detalles de Edición")
+        self.crear_encabezado_paso(self.frm_step3, "3. Edición, Publicación y Descripción")
 
         grid_frame = ctk.CTkFrame(self.frm_step3, fg_color="transparent")
         grid_frame.pack(fill="both", expand=True)
         grid_frame.columnconfigure((0, 1), weight=1)
 
-        self.entry_edicion = self.crear_input(grid_frame, "Edición (Ej. 2da ed.)", 0, 0)
-        self.entry_paginas = self.crear_input(grid_frame, "Páginas", 0, 1)
-        self.entry_dimensiones = self.crear_input(grid_frame, "Dimensiones (cm)", 2, 0)
-        
-        # Nuevos campos
-        self.entry_tomo = self.crear_input(grid_frame, "Tomo", 2, 1)
-        self.entry_volumen = self.crear_input(grid_frame, "Volumen", 4, 0)
+        self.entry_edicion = self.crear_input(grid_frame, "250 Mención de Edición", 0, 0)
+        self.entry_anio = self.crear_input(grid_frame, "Fecha de publicación", 0, 1)
+        self.entry_lugar = self.crear_input(grid_frame, "260 Lugar de publicación", 2, 0)
+        self.entry_editorial = self.crear_input(grid_frame, "Editorial", 2, 1)
+        self.entry_paginas = self.crear_input(grid_frame, "300 Páginas, volumen, etc.", 4, 0)
+        self.entry_dimensiones = self.crear_input(grid_frame, "Dimensiones (cm)", 4, 1)
+        self.entry_serie = self.crear_input(grid_frame, "440 Serie", 6, 0, colspan=2)
+        self.entry_descripcion = self.crear_input(grid_frame, "500 Notas Generales / Historial", 8, 0)
+        self.entry_temas = self.crear_input(grid_frame, "650 Temas / Encabezamientos", 8, 1)
 
 
     def crear_paso_4(self):
+        # PASO 4: Ejemplares y Auditoría
         self.frm_step4 = ctk.CTkFrame(self.container, fg_color="transparent")
-        
-        self.crear_encabezado_paso(self.frm_step4, "4. Datos del Ejemplar Físico")
+        self.crear_encabezado_paso(self.frm_step4, "4. Ejemplares y Auditoría")
 
         grid_frame = ctk.CTkFrame(self.frm_step4, fg_color="transparent")
         grid_frame.pack(fill="both", expand=True)
         grid_frame.columnconfigure((0, 1), weight=1)
 
-        self.entry_adquisicion = self.crear_input(grid_frame, "No. Adquisición (Etiqueta) *", 0, 0, colspan=2)
-        
+        self.entry_adquisicion = self.crear_input(grid_frame, "No. Adquisición (Código Barras) *", 0, 0)
+        self.entry_ubicacion = self.crear_input(grid_frame, "Ubicación (Ej. Biblioteca)", 0, 1)
+        self.entry_ubicacion.insert(0, "General")
+
         self.entry_numero_copia = self.crear_input(grid_frame, "Ejemplar (Ej. Copia 1)", 2, 0)
         self.entry_numero_copia.insert(0, "Copia 1")
         
-        self.entry_ubicacion = self.crear_input(grid_frame, "Ubicación (Ej. Pasillo 3)", 2, 1)
-        self.entry_ubicacion.insert(0, "General")
+        self.entry_analizo = self.crear_input(grid_frame, "Analizó", 4, 0)
+        self.entry_reviso = self.crear_input(grid_frame, "Revisó", 4, 1)
+        
+        self.entry_tomo = self.crear_input(grid_frame, "Tomo (Opcional)", 6, 0)
+        self.entry_volumen = self.crear_input(grid_frame, "Volumen (Opcional)", 6, 1)
+
 
     # ==========================================
     # NAVEGACIÓN Y GUARDADO
     # ==========================================
 
     def mostrar_paso(self, index):
-        # Ocultar todos
         for step in self.steps:
             step.pack_forget()
         
-        # Mostrar actual
         self.steps[index].pack(fill="both", expand=True)
         self.lbl_paginacion.configure(text=f"Paso {index + 1} de {len(self.steps)}")
 
-        # --- LÓGICA DEL BOTÓN ATRÁS ---
         if index == 0:
-            # En la primera página, el botón sirve para SALIR al menú
-            self.btn_atras.configure(
-                state="normal", 
-                text="Cancelar",      # Cambiamos texto para claridad
-                fg_color="#D32F2F",   # Un rojo suave para indicar salida/cancelar
-                hover_color="#B71C1C"
-            )
+            self.btn_atras.configure(text="Cancelar", fg_color="#D32F2F", hover_color="#B71C1C", state="normal")
         else:
-            # En las otras páginas, sirve para RETROCEDER
-            self.btn_atras.configure(
-                state="normal", 
-                text="Atrás", 
-                fg_color="gray",
-                hover_color="#666666"
-            )
+            self.btn_atras.configure(text="Atrás", fg_color="gray", hover_color="#666666", state="normal")
 
-        # Configurar botón Siguiente
         if index == len(self.steps) - 1:
-            self.btn_siguiente.configure(text="GUARDAR REGISTRO", fg_color="#2E7D32")
+            self.btn_siguiente.configure(text="GUARDAR FICHA", fg_color="#2E7D32")
         else:
             self.btn_siguiente.configure(text="Siguiente", fg_color=self.COLOR_BOTON)
 
     def siguiente_paso(self):
-        # --- VALIDACIÓN DEL PASO 1 ---
+        # VALIDACIONES
         if self.current_step == 0:
-            # Validar Título (Oblogatorio)
-            es_titulo_valido = self.validar_campo(self.entry_titulo)
-            if not es_titulo_valido:
-                self.mostrar_mensaje("El titulo es obligatorio", es_error=True)
-                return # Esto hace que no se pueda avanzar
-            
-        # --- VALIDACIÓN DEL PASO 2 ---
-        if self.current_step == 1:
-            #Validar Autor (Obligatorio)
-            es_autor_valido = self.validar_campo(self.entry_autor)
-            if not es_autor_valido:
-                self.mostrar_mensaje("El autor es obligatorio", es_error=True)
-
-        # --- VALIDACIÓN DEL PASO 4 (Antes de guardar) ---
-        if self.current_step == len(self.steps) - 1:
-            # Validar Código de Barras / Adquisición
-            if not self.validar_campo(self.entry_adquisicion):
-                self.mostrar_mensaje("El No. Adquisición es obligatorio", es_error=True)
+            if not self.validar_campo(self.entry_ficha):
+                self.mostrar_mensaje("El No. de Ficha es obligatorio", True)
                 return
-            
-            # Si todo está bien, guardamos
+            if not self.validar_campo(self.entry_clasif):
+                self.mostrar_mensaje("La Clasificación es obligatoria", True)
+                return
+
+        if self.current_step == 1:
+            if not self.validar_campo(self.entry_autor):
+                self.mostrar_mensaje("El Autor Personal es obligatorio", True)
+                return
+            if not self.validar_campo(self.entry_titulo):
+                self.mostrar_mensaje("El Título es obligatorio", True)
+                return
+
+        if self.current_step == len(self.steps) - 1:
+            if not self.validar_campo(self.entry_adquisicion):
+                self.mostrar_mensaje("El No. Adquisición es obligatorio", True)
+                return
             self.evento_guardar()
-        
         else:
-            # Avanzar normal si no es el último paso
             self.current_step += 1
             self.mostrar_paso(self.current_step)
-            self.mostrar_mensaje("") # Limpiar mensajes de error previos
+            self.mostrar_mensaje("") 
 
     def anterior_paso(self):
         if self.current_step > 0:
-            # Comportamiento normal: ir atrás
             self.current_step -= 1
             self.mostrar_paso(self.current_step)
         else:
-            # Comportamiento nuevo: Si estamos en el paso 0, volver al menú
             self.controller.volver_al_menu()
             
     def evento_guardar(self):
+        # 1. Recolectar Códigos de Ilustración
+        codigos_seleccionados = []
+        for chk in self.checks_ilustracion:
+            if chk.get() == 1: # Si está marcado
+                # Obtenemos solo la letra inicial (ej. "A" de "A - Ilustraciones")
+                texto_completo = chk.cget("text")
+                letra = texto_completo.split(" - ")[0] 
+                codigos_seleccionados.append(letra)
+        
+        # Unimos con comas: "A,B,M"
+        str_ilustraciones = ",".join(codigos_seleccionados)
+
+        # 2. Recolectar resto de datos
         datos = {
-            "titulo": self.entry_titulo.get(),
+            "ficha_no": self.entry_ficha.get(),
             "isbn": self.entry_isbn.get(),
             "clasificacion": self.entry_clasif.get(),
-            "serie": self.entry_serie.get(),
+            "codigo_ilustracion": str_ilustraciones, # Enviamos la cadena
             "idioma": self.entry_idioma.get(),
-            "temas": self.entry_temas.get(),
-            "descripcion": self.entry_descripcion.get(),
+            
             "autor_nombre": self.entry_autor.get(),
-            "editorial_nombre": self.entry_editorial.get(),
-            "lugar_publicacion": self.entry_lugar.get(),
-            "anio": self.entry_anio.get(),
+            "autor_corporativo": self.entry_autor_corp.get(),
+            "titulo": self.entry_titulo.get(),
+            "asientos_secundarios": self.entry_asientos.get(),
+            
             "edicion": self.entry_edicion.get(),
+            "anio": self.entry_anio.get(),
+            "lugar_publicacion": self.entry_lugar.get(),
+            "editorial_nombre": self.entry_editorial.get(),
             "paginas": self.entry_paginas.get(),
             "dimensiones": self.entry_dimensiones.get(),
-            "tomo": self.entry_tomo.get(),
-            "volumen": self.entry_volumen.get(),
+            "serie": self.entry_serie.get(),
+            "descripcion": self.entry_descripcion.get(),
+            "temas": self.entry_temas.get(),
+            
             "codigo_barras": self.entry_adquisicion.get(),
+            "ubicacion": self.entry_ubicacion.get(),
             "numero_copia": self.entry_numero_copia.get(),
-            "ubicacion": self.entry_ubicacion.get()
+            "analizo": self.entry_analizo.get(),
+            "reviso": self.entry_reviso.get(),
+            
+            "tomo": self.entry_tomo.get(),
+            "volumen": self.entry_volumen.get()
         }
         self.controller.registrar_libro_completo(datos)
     
