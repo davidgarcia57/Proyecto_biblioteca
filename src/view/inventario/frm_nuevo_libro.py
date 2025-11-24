@@ -140,7 +140,7 @@ class FrmNuevoLibro(ctk.CTkFrame):
         return entry
 
     # ==========================================
-    # DEFINICIÓN DE PASOS (Basado en tu Ficha)
+    # DEFINICIÓN DE PASOS (Basado en la Ficha)
     # ==========================================
 
     def crear_paso_1(self):
@@ -201,7 +201,26 @@ class FrmNuevoLibro(ctk.CTkFrame):
             chk.pack(anchor="w", pady=2, padx=5)
             self.checks_ilustracion.append(chk)
 
-        self.entry_idioma = self.crear_input(grid_frame, "546 Código de Lengua", 4, 1)
+        frame_idioma = ctk.CTkFrame(grid_frame, fg_color="transparent")
+        frame_idioma.grid(row=4, column=1, sticky="nsew", padx=10, pady=(10,0))
+
+        lbl_idioma = ctk.CTkLabel(
+            frame_idioma,
+            text="546 Código de Lengua",
+            font=("Georgia", 12, "bold"),
+            text_color=self.COLOR_TEXTO
+        )
+        lbl_idioma.pack(anchor="w")
+
+        self.entry_idioma = ctk.CTkEntry(
+            frame_idioma,
+            placeholder_text="546 Código de Lengua",
+            fg_color="white",
+            text_color="black",
+            border_color=self.COLOR_BOTON,
+            height=35
+        )
+        self.entry_idioma.pack(fill="x", pady=(5,0))
         self.entry_idioma.insert(0, "SPA")
 
 
@@ -249,18 +268,17 @@ class FrmNuevoLibro(ctk.CTkFrame):
         grid_frame.pack(fill="both", expand=True)
         grid_frame.columnconfigure((0, 1), weight=1)
 
-        self.entry_adquisicion = self.crear_input(grid_frame, "No. Adquisición (Código Barras) *", 0, 0)
-        self.entry_ubicacion = self.crear_input(grid_frame, "Ubicación (Ej. Biblioteca)", 0, 1)
+        self.entry_ubicacion = self.crear_input(grid_frame, "Ubicación (Ej. Biblioteca)", 0, 0)
         self.entry_ubicacion.insert(0, "General")
 
-        self.entry_numero_copia = self.crear_input(grid_frame, "Ejemplar (Ej. Copia 1)", 2, 0)
+        self.entry_numero_copia = self.crear_input(grid_frame, "Ejemplar (Ej. Copia 1)", 0, 1)
         self.entry_numero_copia.insert(0, "Copia 1")
         
-        self.entry_analizo = self.crear_input(grid_frame, "Analizó", 4, 0)
-        self.entry_reviso = self.crear_input(grid_frame, "Revisó", 4, 1)
+        self.entry_analizo = self.crear_input(grid_frame, "Analizó", 2, 0)
+        self.entry_reviso = self.crear_input(grid_frame, "Revisó", 2, 1)
         
-        self.entry_tomo = self.crear_input(grid_frame, "Tomo (Opcional)", 6, 0)
-        self.entry_volumen = self.crear_input(grid_frame, "Volumen (Opcional)", 6, 1)
+        self.entry_tomo = self.crear_input(grid_frame, "Tomo (Opcional)", 4, 0)
+        self.entry_volumen = self.crear_input(grid_frame, "Volumen (Opcional)", 4, 1)
 
 
     # ==========================================
@@ -303,14 +321,11 @@ class FrmNuevoLibro(ctk.CTkFrame):
                 return
 
         if self.current_step == len(self.steps) - 1:
-            if not self.validar_campo(self.entry_adquisicion):
-                self.mostrar_mensaje("El No. Adquisición es obligatorio", True)
-                return
             self.evento_guardar()
         else:
             self.current_step += 1
             self.mostrar_paso(self.current_step)
-            self.mostrar_mensaje("") 
+            self.mostrar_mensaje("")
 
     def anterior_paso(self):
         if self.current_step > 0:
@@ -354,13 +369,10 @@ class FrmNuevoLibro(ctk.CTkFrame):
             "serie": self.entry_serie.get(),
             "descripcion": self.entry_descripcion.get(),
             "temas": self.entry_temas.get(),
-            
-            "codigo_barras": self.entry_adquisicion.get(),
             "ubicacion": self.entry_ubicacion.get(),
             "numero_copia": self.entry_numero_copia.get(),
             "analizo": self.entry_analizo.get(),
             "reviso": self.entry_reviso.get(),
-            
             "tomo": self.entry_tomo.get(),
             "volumen": self.entry_volumen.get()
         }

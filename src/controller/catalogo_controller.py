@@ -27,16 +27,16 @@ class CatalogoController:
         if self.app_main:
             self.app_main.mostrar_menu_principal()
 
-    def registrar_libro_completo(self, datos):
-        # Validaciones básicas antes de tocar la BD
-        if not datos.get("titulo") or not datos.get("codigo_barras"):
-            self.view.mostrar_mensaje("Error: Título y Código de Barras obligatorios.", True)
+def registrar_libro_completo(self, datos):
+        # 1. Validaciones básicas
+        # (NOTA: Se eliminó la validación de 'codigo_barras' porque ahora es automático)
+        if not datos.get("titulo"):
+            self.view.mostrar_mensaje("Error: El Título es obligatorio.", True)
             return
 
-        # 1. Intentamos conectar (o reusar la conexión si ya está abierta)
+        # 2. Conexión a la Base de Datos
         conn = self.db.conectar()
         
-        # Verificamos si realmente tenemos conexión
         if not conn or not conn.is_connected():
             self.view.mostrar_mensaje("Sin conexión a BD", True)
             return
@@ -44,10 +44,9 @@ class CatalogoController:
         cursor = None
         try:
             cursor = conn.cursor()
-            conn.start_transaction() # Inicia transacción (Atomicidad)
+            conn.start_transaction() # Inicia transacción
 
             # --- PASO 1: Editorial ---
-            # Busca si existe la editorial o la crea
             editorial = Editorial(datos.get("editorial_nombre", "Sin Editorial"), datos.get("lugar_publicacion"))
             id_editorial = editorial.guardar(cursor)
 
@@ -81,33 +80,29 @@ class CatalogoController:
             autor = Autor(datos.get("autor_nombre", "Anónimo"))
             id_autor = autor.guardar(cursor)
             
-            # Relacionamos el autor con la obra en la tabla intermedia
+            # Relacionamos el autor con la obra
             obra.relacionar_autor(cursor, id_autor)
 
-            # --- PASO 4: Ejemplar ---
+            # --- PASO 4: Ejemplar (Aquí está el cambio clave) ---
             ejemplar = Ejemplar(
-                codigo_barras=datos["codigo_barras"],
                 id_obra=id_obra,
                 numero_copia=datos.get("numero_copia", "Copia 1"),
                 ubicacion_fisica=datos.get("ubicacion", "General")
             )
-
-            # Verificamos si el código de barras ya existe para evitar duplicados
-            if ejemplar.existe(cursor):
-                raise Exception(f"El código de barras {ejemplar.codigo_barras} ya existe.")
             
-            ejemplar.guardar(cursor)
+            # Guardamos y CAPTURAMOS el ID que la BD acaba de generar
+            id_generado = ejemplar.guardar(cursor)
 
-            # Si todo salió bien, confirmamos cambios permanentemente
+            # Confirmamos la transacción
             conn.commit()
-            self.view.mostrar_mensaje(f"¡Libro '{obra.titulo}' registrado con éxito!")
+            
+            # --- MENSAJE FINAL CON EL NÚMERO DE ADQUISICIÓN ---
+            self.view.mostrar_mensaje(f"¡Éxito! Libro registrado.\nNo. Adquisición Asignado: {id_generado}")
 
         except Exception as e:
-            conn.rollback() # Si algo falló, deshacemos todo lo anterior
+            conn.rollback() # Si falla algo, deshacemos todo
             print(f"Error: {e}")
             self.view.mostrar_mensaje(f"Error al guardar: {e}", True)
         finally:
             if cursor:
                 cursor.close()
-            # NOTA: NO cerramos 'db.cerrar()' aquí para mantener la conexión viva 
-            # y que el siguiente libro se guarde más rápido.
