@@ -16,7 +16,7 @@ class CatalogoController:
         # Inicializamos la vista pasándole este controlador (self)
         self.view = FrmNuevoLibro(view_container, self)
         
-        # OPTIMIZACIÓN: Instanciamos el manejador de BD una sola vez al inicio
+        # Instanciamos el manejador de BD
         self.db = ConexionBD()
 
     def volver_al_menu(self):
@@ -27,9 +27,8 @@ class CatalogoController:
         if self.app_main:
             self.app_main.mostrar_menu_principal()
 
-def registrar_libro_completo(self, datos):
+    def registrar_libro_completo(self, datos):
         # 1. Validaciones básicas
-        # (NOTA: Se eliminó la validación de 'codigo_barras' porque ahora es automático)
         if not datos.get("titulo"):
             self.view.mostrar_mensaje("Error: El Título es obligatorio.", True)
             return
@@ -83,7 +82,7 @@ def registrar_libro_completo(self, datos):
             # Relacionamos el autor con la obra
             obra.relacionar_autor(cursor, id_autor)
 
-            # --- PASO 4: Ejemplar (Aquí está el cambio clave) ---
+            # --- PASO 4: Ejemplar ---
             ejemplar = Ejemplar(
                 id_obra=id_obra,
                 numero_copia=datos.get("numero_copia", "Copia 1"),
@@ -106,3 +105,4 @@ def registrar_libro_completo(self, datos):
         finally:
             if cursor:
                 cursor.close()
+            # No cerramos la conexión self.db aquí para mantenerla disponible
