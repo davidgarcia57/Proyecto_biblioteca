@@ -9,7 +9,7 @@ class FmrBuscarLibro(ctk.CTkFrame):
     COLOR_BOTON = "#A7744A"
     COLOR_HOVER = "#8c5e3c"
     
-    def __init__(self, master, controller=None):
+    def __init__(self, master, controller):
         super().__init__(master)
         self.controller = controller 
         
@@ -33,7 +33,7 @@ class FmrBuscarLibro(ctk.CTkFrame):
         self.btn_volver = ctk.CTkButton(
             header_frame,
             text="⬅ Volver al Menú",
-            font=("Arial", 12, "bold"),
+            font=("Arial", 14, "bold"),
             fg_color="transparent",
             text_color=self.COLOR_BOTON,
             border_width=2,
@@ -47,7 +47,7 @@ class FmrBuscarLibro(ctk.CTkFrame):
         lbl_titulo = ctk.CTkLabel(
             header_frame, 
             text="Catálogo de Libros", 
-            font=("Georgia", 24, "bold"), 
+            font=("Georgia", 26, "bold"), 
             text_color=self.COLOR_TEXTO
         )
         lbl_titulo.pack(side="left", padx=20)
