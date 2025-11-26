@@ -1,31 +1,73 @@
 class Obra:
-    def __init__(self, titulo, id_editorial=None, codigo_idioma=None, isbn=None, 
-                 clasificacion_lc=None, edicion=None, fecha_publicacion=None, 
-                 paginas=None, dimensiones=None, serie=None, codigo_ilustracion=None, 
-                 notas_generales=None, nota_historial_bib=None, encabezado_temas=None, 
+    def __init__(self, titulo, id_editorial, isbn=None, idioma="Español", 
+                 anio_publicacion=None, edicion=None, clasificacion=None, 
+                 paginas=None, dimensiones=None, serie=None, 
+                 tomo=None, volumen=None, descripcion=None, temas=None,
+                 ficha_no=None, autor_corporativo=None, asientos_secundarios=None,
+                 codigo_ilustracion=None, analizo=None, reviso=None, lugar_publicacion=None,
                  id_obra=None):
         
         self.id_obra = id_obra
-        
-        # Relaciones o las FK
-        self.id_editorial = id_editorial
-        self.codigo_idioma = codigo_idioma
-        
-        # Datos
         self.titulo = titulo
+        self.id_editorial = id_editorial
         self.isbn = isbn
-        self.clasificacion_lc = clasificacion_lc
+        self.idioma = idioma
+        self.anio_publicacion = anio_publicacion
         self.edicion = edicion
-        self.fecha_publicacion = fecha_publicacion
+        self.clasificacion = clasificacion
         self.paginas = paginas
         self.dimensiones = dimensiones
         self.serie = serie
-        
-        # Otros lo divido más que nada por que tienen su apartado no por otra cosa
+        self.tomo = tomo
+        self.volumen = volumen
+        self.descripcion = descripcion
+        self.temas = temas
+        self.ficha_no = ficha_no
+        self.autor_corporativo = autor_corporativo
+        self.asientos_secundarios = asientos_secundarios
         self.codigo_ilustracion = codigo_ilustracion
-        self.notas_generales = notas_generales
-        self.nota_historial_bib = nota_historial_bib
-        self.encabezado_temas = encabezado_temas
+        self.analizo = analizo
+        self.reviso = reviso
+        self.lugar_publicacion = lugar_publicacion
 
-    def __str__(self):
-        return f"{self.titulo} (ID: {self.id_obra})"
+    def guardar(self, cursor):
+        sql = """
+            INSERT INTO obras (
+                titulo, isbn, id_editorial, idioma, anio_publicacion, 
+                edicion, clasificacion, paginas, dimensiones, serie, 
+                tomo, volumen, descripcion, temas,
+                ficha_no, autor_corporativo, asientos_secundarios,
+                codigo_ilustracion, analizo, reviso, lugar_publicacion
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        valores = (
+            self.titulo, self.isbn, self.id_editorial, self.idioma,
+            self.anio_publicacion, self.edicion, self.clasificacion,
+            self.paginas, self.dimensiones, self.serie, 
+            self.tomo, self.volumen, self.descripcion, self.temas,
+            self.ficha_no, self.autor_corporativo, self.asientos_secundarios,
+            self.codigo_ilustracion, self.analizo, self.reviso, self.lugar_publicacion
+        )
+        cursor.execute(sql, valores)
+        self.id_obra = cursor.lastrowid
+        return self.id_obra
+
+    # El método relacionar_autor se queda igual
+    def relacionar_autor(self, cursor, id_autor, rol="Autor Principal"):
+        sql = "INSERT INTO autores_obras (id_obra, id_autor, rol) VALUES (%s, %s, %s)"
+        cursor.execute(sql, (self.id_obra, id_autor, rol))
+    
+    @staticmethod
+    def buscar_por_termino(cursosr,termino):
+        termino_like = f"%{termino}%"
+
+        sql = """
+            SELECT o.id_obra, o.titulo, o.isbn, o.anio_publicacion, a.nombre_completo, e.nombre
+            FROM obras o
+            LEFT JOIN autores_obras ao ON o.id_obra = ao.id_obra
+            LEFT JOIN autores a ON ao.id_autor = a.id_autor
+            LEFT JOIN editoriales e ON o.id_editorial = e.id_editorial
+            WHERE o.titulo LIKE %s OR o.isbn LIKE %s OR a.nombre_completo LIKE %s
+        """
+        cursosr.execute(sql, (termino_like, termino_like, termino_like))
+        return cursosr.fetchall()

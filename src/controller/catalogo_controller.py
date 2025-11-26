@@ -1,98 +1,108 @@
-from src.model.Obra import Obra
-from src.model.Autor import Autor
-from src.model.Editorial import Editorial
-from src.model.Ejemplar import Ejemplar
-
-from src.dao.Obra_dao import ObraDAO
-from src.dao.Ejemplar_dao import EjemplarDAO
+from src.config.conexion_db import ConexionBD
 from src.view.inventario.frm_nuevo_libro import FrmNuevoLibro
 
+# Importamos los modelos
+from src.model.Editorial import Editorial
+from src.model.Autor import Autor
+from src.model.Obra import Obra
+from src.model.Ejemplar import Ejemplar
+
 class CatalogoController:
-    def __init__(self, view_container, id_usuario_actual=1):
-
+    def __init__(self, view_container, id_usuario_actual, on_close=None):
         self.view_container = view_container
-        self.id_usuario_actual = id_usuario_actual #de momento es 1 para la DEMO
+        self.id_usuario_actual = id_usuario_actual
+        self.on_close = on_close
         
-        # Estos son los archivos que usa que la carpeta dao
-        self.obra_dao = ObraDAO()
-        self.ejemplar_dao = EjemplarDAO()
-
-        # Vista
+        # Inicializamos la vista pasándole este controlador (self)
         self.view = FrmNuevoLibro(view_container, self)
+        
+        # Instanciamos el manejador de BD
+        self.db = ConexionBD()
+
+    def volver_al_menu(self):
+        """
+        Método llamado por el botón 'Cancelar/Atrás' de la vista (en el paso 1).
+        Usa la referencia a app_main para cambiar la pantalla al menú.
+        """
+        if self.on_close:
+            self.on_close()
 
     def registrar_libro_completo(self, datos):
-        """
-        Recibe un diccionario 'datos' desde la Vista con TODA la información.
-        Orquesta la creación de objetos y la persistencia en BD.
-        """
+        # 1. Validaciones básicas
+        if not datos.get("titulo"):
+            self.view.mostrar_mensaje("Error: El Título es obligatorio.", True)
+            return
+
+        # 2. Conexión a la Base de Datos
+        conn = self.db.conectar()
         
-        # Todo esto en si son validaciones para evitar copias y problemas en la BD
-        if not datos.get("titulo") or not datos.get("no_adquisicion"):
-            self.view.mostrar_mensaje("Error: Título y No. Adquisición son obligatorios.", True)
+        if not conn or not conn.is_connected():
+            self.view.mostrar_mensaje("Sin conexión a BD", True)
             return
 
-        if self.ejemplar_dao.existe_adquisicion(datos["no_adquisicion"]):
-            self.view.mostrar_mensaje(f"Error: El No. Adquisición {datos['no_adquisicion']} ya existe.", True)
-            return
-
+        cursor = None
         try:
-            # Es la creacion de objetos y los modelos por si acaso lo especifico pero se explican solos
-            
-            # Editorial
-            editorial = Editorial(
-                nombre_editorial=datos.get("editorial_nombre", "Sin Editorial"),
-                lugar_publicacion=datos.get("lugar_publicacion")
-            )
+            cursor = conn.cursor()
+            conn.start_transaction() # Inicia transacción
 
-            # Autor
-            autor = Autor(
-                nombre_completo=datos.get("autor_nombre", "Anónimo"),
-                tipo_autor="Personal" #R
-            )
+            # --- PASO 1: Editorial ---
+            editorial = Editorial(datos.get("editorial_nombre", "Sin Editorial"), datos.get("lugar_publicacion"))
+            id_editorial = editorial.guardar(cursor)
 
-            # Obra
+            # --- PASO 2: Obra ---
             obra = Obra(
                 titulo=datos["titulo"],
+                id_editorial=id_editorial,
                 isbn=datos.get("isbn"),
-                clasificacion_lc=datos.get("clasificacion"),
+                idioma=datos.get("idioma", "Español"),
+                anio_publicacion=datos.get("anio"),
                 edicion=datos.get("edicion"),
-                fecha_publicacion=datos.get("anio"), #Por pedos de no poder usar la ñ
+                clasificacion=datos.get("clasificacion"),
                 paginas=datos.get("paginas"),
                 dimensiones=datos.get("dimensiones"),
                 serie=datos.get("serie"),
-                codigo_ilustracion=datos.get("codigo_ilustracion"), # Aqui deberia ser de la A a la Z pero por practicidad solo seran unas pocas (demo)
-                notas_generales=datos.get("notas"),
-                codigo_idioma=datos.get("idioma", "SPA") # Lo agregue por que logicamente todos los libros estan en español pero ps si esta en otro idioma se cambia
-            )
-
-            # Es la transaccion uno (dato curioso en el extraordinario de BD fue donde la miss sin darse cuenta me estaba resolviendo todo lo que va aqui xd)
-            # Esto guarda Editorial + Autor + Obra + Relaciones y devuelve el ID
-            id_obra_generado = self.obra_dao.registrar_obra_completa(obra, autor, editorial)
-
-            if not id_obra_generado:
-                self.view.mostrar_mensaje("Error crítico al registrar la Obra/Autor.", True)
-                return
-
-            # CREACIÓN Y PERSISTENCIA DEL EJEMPLAR Transacción 2
-            ejemplar = Ejemplar(
-                no_adquisicion=datos["no_adquisicion"],
-                id_obra=id_obra_generado,
-                id_usuario_captura=self.id_usuario_actual,
-                ejemplar=datos.get("num_ejemplar"), # Ej. "Copia 1 si llega a haber claro"
+                tomo=datos.get("tomo"),
                 volumen=datos.get("volumen"),
-                tomo=datos.get("tomo")
+                descripcion=datos.get("descripcion"),
+                temas=datos.get("temas"),
+                ficha_no=datos.get("ficha_no"),
+                autor_corporativo=datos.get("autor_corporativo"),
+                asientos_secundarios=datos.get("asientos_secundarios"),
+                codigo_ilustracion=datos.get("codigo_ilustracion"),
+                analizo=datos.get("analizo"),
+                reviso=datos.get("reviso"),
+                lugar_publicacion=datos.get("lugar_publicacion")
             )
+            id_obra = obra.guardar(cursor)
 
-            exito_ejemplar = self.ejemplar_dao.guardar_ejemplar(ejemplar)
+            # --- PASO 3: Autor y Relación ---
+            autor = Autor(datos.get("autor_nombre", "Anónimo"))
+            id_autor = autor.guardar(cursor)
+            
+            # Relacionamos el autor con la obra
+            obra.relacionar_autor(cursor, id_autor)
 
-            # RESULTADO FINAL
-            if exito_ejemplar:
-                self.view.mostrar_mensaje(f"¡Libro '{datos['titulo']}' registrado con éxito!")
-                # Opcional: Limpiar formulario
-                # self.view.limpiar_campos() agrego esto o nel?
-            else:
-                self.view.mostrar_mensaje("La Obra se guardó, pero falló el Ejemplar físico.", True)
+            # --- PASO 4: Ejemplar ---
+            ejemplar = Ejemplar(
+                id_obra=id_obra,
+                numero_copia=datos.get("numero_copia", "Copia 1"),
+                ubicacion_fisica=datos.get("ubicacion", "General")
+            )
+            
+            # Guardamos y CAPTURAMOS el ID que la BD acaba de generar
+            id_generado = ejemplar.guardar(cursor)
+
+            # Confirmamos la transacción
+            conn.commit()
+            
+            # --- MENSAJE FINAL CON EL NÚMERO DE ADQUISICIÓN ---
+            self.view.mostrar_mensaje(f"¡Éxito! Libro registrado.\nNo. Adquisición Asignado: {id_generado}")
 
         except Exception as e:
-            print(f"Excepción en controlador: {e}")
-            self.view.mostrar_mensaje(f"Error inesperado: {e}", True)
+            conn.rollback() # Si falla algo, deshacemos todo
+            print(f"Error: {e}")
+            self.view.mostrar_mensaje(f"Error al guardar: {e}", True)
+        finally:
+            if cursor:
+                cursor.close()
+            # No cerramos la conexión self.db aquí para mantenerla disponible

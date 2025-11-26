@@ -1,143 +1,383 @@
 import customtkinter as ctk
+from tkinter import messagebox
 
-class FrmNuevoLibro(ctk.CTkScrollableFrame):
+class FrmNuevoLibro(ctk.CTkFrame):
     def __init__(self, master, controller):
         super().__init__(master)
-        self.controller = controller  
+        self.controller = controller
         
-        # Es para que el grid no valga madres, todavía no lo modifico para que se vea diferente (DEMO)
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=1)
-
-        # Este es el TÍTULO PRINCIPAL o (Fila 0) 
-        self.lbl_titulo = ctk.CTkLabel(self, text="Registro Completo de Libros", font=("Arial", 24, "bold"))
-        self.lbl_titulo.grid(row=0, column=0, columnspan=2, pady=(10, 20))
-
-        # SECCIÓN 1: DATOS DE LA OBRA 
-
-        # Fila 1 aqui va el título
-        self.crear_seccion("1. Datos de la Obra", 1)
-
-        # Siempre en estos seran dos, el entry y el label para que se ponga tanto detro como fuera de la caja, en este caso la fila 2 y 3
-        self.entry_titulo = self.crear_input("Título de la Obra *", 2, 0, 2) 
+        # --- PALETA DE COLORES  ---
+        self.COLOR_FONDO = "#F3E7D2"      # Beige
+        self.COLOR_TEXTO = "#5a3b2e"      # Marrón Oscuro
+        self.COLOR_BOTON = "#A7744A"      # Bronce
+        self.COLOR_HOVER = "#8c5e3c"      # Bronce Oscuro
+        self.COLOR_LINEA = "#A7744A"      # Color para las líneas separadoras
         
-        # Fila 4 (Labels) y 5 (Entries)
-        self.entry_isbn = self.crear_input("ISBN (020)", 4, 0)
-        self.entry_clasif = self.crear_input("Clasificación (050)", 4, 1)
+        # Configurar fondo principal
+        self.configure(fg_color=self.COLOR_FONDO)
+
+        # --- VARIABLES DE NAVEGACIÓN ---
+        self.current_step = 0
+        self.steps = [] 
         
-        # Fila 6 (Labels) y 7 (Entries)
-        self.entry_serie = self.crear_input("Serie (440)", 6, 0)
-        self.entry_idioma = self.crear_input("Idioma (Default: SPA)", 6, 1)
-        self.entry_idioma.insert(0, "SPA") #Esto lo agarre de un ejemplo que vi, creo que lo podemos usar para que los usuarios sepan que es cada cosa, como una guia
+        # Lista para almacenar las referencias a los checkboxes de ilustraciones
+        self.checks_ilustracion = []
 
-        # Fila 8 Aquí puse lo de los codigos de ilustracion
-        self.lbl_ilustracion = ctk.CTkLabel(self, text="Tipo de Ilustración")
-        self.lbl_ilustracion.grid(row=8, column=0, padx=10, pady=(5, 0), sticky="w")
+        # --- HEADER (Título fijo) ---
+        self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.header_frame.pack(fill="x", padx=40, pady=(20, 10))
         
-        # Fila 9 de momento no son todos los codigos pero ps es un ejemplo eda
-        self.cbo_ilustracion = ctk.CTkComboBox(self, values=["X - Sin ilustraciones", "A - Ilustraciones", "B - Mapas", "D - Fotografías", "Z - Otros"])
-        self.cbo_ilustracion.grid(row=9, column=0, padx=10, pady=(0, 10), sticky="ew")
+        self.lbl_titulo_main = ctk.CTkLabel(
+            self.header_frame, 
+            text="Ficha de Ingreso de Libros (MARC 21)", 
+            font=("Georgia", 26, "bold"), 
+            text_color=self.COLOR_TEXTO
+        )
+        self.lbl_titulo_main.pack(side="left")
 
-        # Fila 8 y 9 solo alinee la de notas con la de ilustraciones
-        self.entry_notas = self.crear_input("Notas Generales", 8, 1) 
+        self.lbl_paginacion = ctk.CTkLabel(
+            self.header_frame, 
+            text="Paso 1 de 4", 
+            font=("Arial", 14, "bold"), 
+            text_color=self.COLOR_BOTON
+        )
+        self.lbl_paginacion.pack(side="right", anchor="s")
 
-        # Aqui iria lo de la editorial y la autoria, más que nada me estoy basando un poco en lo que esta en la BD
-        # Fila 10: Título Sección
-        self.crear_seccion("2. Autoría y Editorial", 10)
+        # --- CONTENEDOR DE LOS PASOS ---
+        self.container = ctk.CTkFrame(self, fg_color="transparent")
+        self.container.pack(fill="both", expand=True, padx=40, pady=10)
 
-        # Fila 11 (Label) y 12 (Entry)
-        self.entry_autor = self.crear_input("Nombre del Autor Principal *", 11, 0, 2)
+        # Crear los frames de cada paso
+        self.crear_paso_1()
+        self.crear_paso_2()
+        self.crear_paso_3()
+        self.crear_paso_4()
+
+        self.steps = [self.frm_step1, self.frm_step2, self.frm_step3, self.frm_step4]
+
+        # --- FOOTER (Botones) ---
+        self.footer_frame = ctk.CTkFrame(self, fg_color="transparent", height=60)
+        self.footer_frame.pack(fill="x", side="bottom", padx=40, pady=30)
+
+        self.btn_atras = ctk.CTkButton(
+            self.footer_frame, 
+            text="Atrás", 
+            font=("Georgia", 14),
+            fg_color="gray",
+            hover_color="#666666",
+            width=120,
+            height=40,
+            command=self.anterior_paso,
+            state="disabled"
+        )
+        self.btn_atras.pack(side="left")
+
+        self.btn_siguiente = ctk.CTkButton(
+            self.footer_frame, 
+            text="Siguiente", 
+            font=("Georgia", 14, "bold"),
+            fg_color=self.COLOR_BOTON,
+            hover_color=self.COLOR_HOVER,
+            width=150,
+            height=40,
+            command=self.siguiente_paso
+        )
+        self.btn_siguiente.pack(side="right")
         
-        # Fila 13 (Label) y 14 (Entry) Que no se note el copiar y pegar que hice en cada Label y Entry xd
-        self.entry_editorial = self.crear_input("Nombre de la Editorial", 13, 0)
-        self.entry_lugar = self.crear_input("Lugar de Publicación", 13, 1)
+        self.lbl_mensaje = ctk.CTkLabel(self.footer_frame, text="", font=("Arial", 12, "bold"))
+        self.lbl_mensaje.place(relx=0.5, rely=0.5, anchor="center")
 
-        # Ni se para que lo explico pero pos aqui va lo de detalles de la edicion como en su tabla
-        # Fila 15: Título Sección
-        self.crear_seccion("3. Detalles de Edición", 15)
+        # Iniciar en el paso 1
+        self.mostrar_paso(0)
 
-        # Fila 16 (Label) y 17 (Entry)
-        self.entry_edicion = self.crear_input("Edición (Ej. 2da ed.)", 16, 0)
-        self.entry_anio = self.crear_input("Año de Publicación", 16, 1)
+    # ==========================================
+    #             LÓGICA VISUAL
+    # ==========================================
+    def validar_campo(self, entry_widget):
+        """Retorna True si tiene texto, False si está vacío y lo pinta de rojo"""
+        if not entry_widget.get().strip():
+            entry_widget.configure(border_color="red")
+            return False
+        else:
+            entry_widget.configure(border_color=self.COLOR_BOTON) 
+            return True
         
-        # Fila 18 (Label) y 19 (Entry)
-        self.entry_paginas = self.crear_input("Páginas / Volúmenes", 18, 0)
-        self.entry_dimensiones = self.crear_input("Dimensiones (cm)", 18, 1)
+    def crear_encabezado_paso(self, parent, texto):
+        """Crea el título con la línea divisoria abajo"""
+        frame_titulo = ctk.CTkFrame(parent, fg_color="transparent")
+        frame_titulo.pack(fill="x", pady=(0, 20))
 
-        # Los datos del ejemplar fisico
+        lbl = ctk.CTkLabel(
+            frame_titulo, 
+            text=texto, 
+            font=("Georgia", 20, "bold"), 
+            text_color=self.COLOR_TEXTO
+        )
+        lbl.pack(side="left", anchor="w")
 
-        self.crear_seccion("4. Datos del Ejemplar Físico", 20)
+        linea = ctk.CTkFrame(parent, height=2, fg_color=self.COLOR_LINEA)
+        linea.pack(fill="x", pady=(0, 20))
 
-        self.entry_adquisicion = self.crear_input("No. Adquisición (Etiqueta) *", 21, 0, 2)
+    def crear_input(self, parent, label_text, row, col, colspan=1):
+        """Helper para crear labels y entries"""
+        lbl = ctk.CTkLabel(
+            parent, 
+            text=label_text, 
+            font=("Georgia", 12, "bold"), 
+            text_color=self.COLOR_TEXTO 
+        )
+        lbl.grid(row=row, column=col, sticky="w", pady=(10, 5), padx=10)
         
-        self.entry_ejemplar = self.crear_input("Ejemplar (Ej. Copia 1)", 23, 0)
-        self.entry_tomo = self.crear_input("Tomo", 23, 1)
-        
-        self.entry_volumen = self.crear_input("Volumen", 25, 0)
-
-        # Este es el boton
-        # Dejamos espacio para que no choque xd 
-        self.btn_guardar = ctk.CTkButton(self, text="GUARDAR REGISTRO COMPLETO", height=40, 
-                                         font=("Arial", 14, "bold"), fg_color="green", hover_color="darkgreen",
-                                         command=self.evento_guardar)
-        self.btn_guardar.grid(row=27, column=0, columnspan=2, pady=30, padx=20, sticky="ew")
-
-        self.lbl_mensaje = ctk.CTkLabel(self, text="")
-        self.lbl_mensaje.grid(row=28, column=0, columnspan=2, pady=10)
-
-    def crear_seccion(self, texto, fila):
-        """Helper para crear separadores de sección"""
-        lbl = ctk.CTkLabel(self, text=texto, font=("Arial", 16, "bold", "underline"))
-        # Agregamos más pady arriba para separar secciones visualmente
-        lbl.grid(row=fila, column=0, columnspan=2, pady=(25, 10), sticky="w", padx=10)
-
-    def crear_input(self, placeholder, fila, columna, colspan=1):
-        """Helper para crear entradas de texto estándar"""
-        # Label en la fila 'fila'
-        lbl = ctk.CTkLabel(self, text=placeholder, font=("Arial", 12))
-        lbl.grid(row=fila, column=columna, padx=10, pady=(5, 0), sticky="w")
-        
-        # Entry en la fila 'fila + 1'
-        entry = ctk.CTkEntry(self, placeholder_text=placeholder)
-        entry.grid(row=fila+1, column=columna, columnspan=colspan, padx=10, pady=(0, 10), sticky="ew")
+        entry = ctk.CTkEntry(
+            parent, 
+            placeholder_text=label_text,
+            fg_color="white", 
+            text_color="black",
+            border_color=self.COLOR_BOTON,
+            height=35
+        )
+        entry.grid(row=row+1, column=col, columnspan=colspan, sticky="ew", pady=(0, 5), padx=10)
         return entry
 
-    def evento_guardar(self):
-        # Obtener la letra del código de ilustración (Ej: "A - Ilustraciones" -> "A")
-        codigo_ilustracion = self.cbo_ilustracion.get().split(" - ")[0]
+    # ==========================================
+    # DEFINICIÓN DE PASOS (Basado en la Ficha)
+    # ==========================================
 
-        # Recolectar TODOS los datos en un diccionario
+    def crear_paso_1(self):
+        # PASO 1: Datos de Control y Clasificación
+        self.frm_step1 = ctk.CTkFrame(self.container, fg_color="transparent")
+        self.frm_step1.columnconfigure((0, 1), weight=1)
+        
+        self.crear_encabezado_paso(self.frm_step1, "1. Datos de Ficha y Clasificación")
+        
+        grid_frame = ctk.CTkFrame(self.frm_step1, fg_color="transparent")
+        grid_frame.pack(fill="both", expand=True)
+        grid_frame.columnconfigure((0, 1), weight=1)
+
+        # Fila 0: Ficha y ISBN
+        self.entry_ficha = self.crear_input(grid_frame, "Ficha No. *", 0, 0)
+        self.entry_isbn = self.crear_input(grid_frame, "020 ISBN", 0, 1)
+
+        # Fila 2: Clasificación
+        self.entry_clasif = self.crear_input(grid_frame, "050 Clasificación *", 2, 0, colspan=2)
+        
+        # --- SECCIÓN DE CÓDIGO DE ILUSTRACIONES (CHECKBOXES) ---
+        lbl_ilus = ctk.CTkLabel(grid_frame, text="Código de ilustraciones (Selección Múltiple)", font=("Georgia", 12, "bold"), text_color=self.COLOR_TEXTO)
+        lbl_ilus.grid(row=4, column=0, sticky="w", padx=10, pady=(10,0))
+        
+        # Usamos ScrollableFrame para que quepan todas las opciones
+        self.scroll_ilustraciones = ctk.CTkScrollableFrame(
+            grid_frame, 
+            height=150, 
+            width=300, 
+            fg_color="white", 
+            border_color=self.COLOR_BOTON, 
+            border_width=1,
+            label_text="Opciones Disponibles",
+            label_text_color=self.COLOR_TEXTO
+        )
+        self.scroll_ilustraciones.grid(row=5, column=0, sticky="ew", padx=10, pady=(5,10))
+        
+        # Lista completa
+        opciones = [
+            "X - Sin ilustraciones", "A - Ilustraciones", "B - Mapa", "C - Retratos", 
+            "D - Fotografías", "E - Planos", "F - Láminas", "G - Música", 
+            "H - Facsímiles", "I - Diagramas", "J - Grabados", "K - Litografía",
+            "L - Grabaciones o discos", "M - Gráficas", "N - Tablas", "P - Laminaciones",
+            "Q - Diskettes", "R - Tablas Genealógicas", "S - Dispositivas", 
+            "T - Formas y formularios", "U - Muestras", "Z - Otros"
+        ]
+        
+        # Generamos los checkboxes dinámicamente
+        self.checks_ilustracion = []
+        for op in opciones:
+            chk = ctk.CTkCheckBox(
+                self.scroll_ilustraciones, 
+                text=op, 
+                text_color="black",
+                fg_color=self.COLOR_BOTON, 
+                hover_color=self.COLOR_HOVER
+            )
+            chk.pack(anchor="w", pady=2, padx=5)
+            self.checks_ilustracion.append(chk)
+
+        frame_idioma = ctk.CTkFrame(grid_frame, fg_color="transparent")
+        frame_idioma.grid(row=4, column=1, sticky="nsew", padx=10, pady=(10,0))
+
+        lbl_idioma = ctk.CTkLabel(
+            frame_idioma,
+            text="546 Código de Lengua",
+            font=("Georgia", 12, "bold"),
+            text_color=self.COLOR_TEXTO
+        )
+        lbl_idioma.pack(anchor="w")
+
+        self.entry_idioma = ctk.CTkEntry(
+            frame_idioma,
+            placeholder_text="546 Código de Lengua",
+            fg_color="white",
+            text_color="black",
+            border_color=self.COLOR_BOTON,
+            height=35
+        )
+        self.entry_idioma.pack(fill="x", pady=(5,0))
+        self.entry_idioma.insert(0, "SPA")
+
+
+    def crear_paso_2(self):
+        # PASO 2: Autoría y Título
+        self.frm_step2 = ctk.CTkFrame(self.container, fg_color="transparent")
+        self.crear_encabezado_paso(self.frm_step2, "2. Autoría y Título (100, 110, 245, 700)")
+
+        grid_frame = ctk.CTkFrame(self.frm_step2, fg_color="transparent")
+        grid_frame.pack(fill="both", expand=True)
+        grid_frame.columnconfigure((0, 1), weight=1)
+
+        self.entry_autor = self.crear_input(grid_frame, "100 Autor Personal (Principal) *", 0, 0, colspan=2)
+        self.entry_autor_corp = self.crear_input(grid_frame, "110 Autor Corporativo", 2, 0, colspan=2)
+        self.entry_titulo = self.crear_input(grid_frame, "245 Título / Mención de responsabilidad *", 4, 0, colspan=2)
+        self.entry_asientos = self.crear_input(grid_frame, "700 Asientos Secundarios (Coautores)", 6, 0, colspan=2)
+
+
+    def crear_paso_3(self):
+        # PASO 3: Edición, Publicación y Descripción
+        self.frm_step3 = ctk.CTkFrame(self.container, fg_color="transparent")
+        self.crear_encabezado_paso(self.frm_step3, "3. Edición, Publicación y Descripción")
+
+        grid_frame = ctk.CTkFrame(self.frm_step3, fg_color="transparent")
+        grid_frame.pack(fill="both", expand=True)
+        grid_frame.columnconfigure((0, 1), weight=1)
+
+        self.entry_edicion = self.crear_input(grid_frame, "250 Mención de Edición", 0, 0)
+        self.entry_anio = self.crear_input(grid_frame, "Fecha de publicación", 0, 1)
+        self.entry_lugar = self.crear_input(grid_frame, "260 Lugar de publicación", 2, 0)
+        self.entry_editorial = self.crear_input(grid_frame, "Editorial", 2, 1)
+        self.entry_paginas = self.crear_input(grid_frame, "300 Páginas, volumen, etc.", 4, 0)
+        self.entry_dimensiones = self.crear_input(grid_frame, "Dimensiones (cm)", 4, 1)
+        self.entry_serie = self.crear_input(grid_frame, "440 Serie", 6, 0, colspan=2)
+        self.entry_descripcion = self.crear_input(grid_frame, "500 Notas Generales / Historial", 8, 0)
+        self.entry_temas = self.crear_input(grid_frame, "650 Temas / Encabezamientos", 8, 1)
+
+
+    def crear_paso_4(self):
+        # PASO 4: Ejemplares y Auditoría
+        self.frm_step4 = ctk.CTkFrame(self.container, fg_color="transparent")
+        self.crear_encabezado_paso(self.frm_step4, "4. Ejemplares y Auditoría")
+
+        grid_frame = ctk.CTkFrame(self.frm_step4, fg_color="transparent")
+        grid_frame.pack(fill="both", expand=True)
+        grid_frame.columnconfigure((0, 1), weight=1)
+
+        self.entry_ubicacion = self.crear_input(grid_frame, "Ubicación (Ej. Biblioteca)", 0, 0)
+        self.entry_ubicacion.insert(0, "General")
+
+        self.entry_numero_copia = self.crear_input(grid_frame, "Ejemplar (Ej. Copia 1)", 0, 1)
+        self.entry_numero_copia.insert(0, "Copia 1")
+        
+        self.entry_analizo = self.crear_input(grid_frame, "Analizó", 2, 0)
+        self.entry_reviso = self.crear_input(grid_frame, "Revisó", 2, 1)
+        
+        self.entry_tomo = self.crear_input(grid_frame, "Tomo (Opcional)", 4, 0)
+        self.entry_volumen = self.crear_input(grid_frame, "Volumen (Opcional)", 4, 1)
+
+
+    # ==========================================
+    # NAVEGACIÓN Y GUARDADO
+    # ==========================================
+
+    def mostrar_paso(self, index):
+        for step in self.steps:
+            step.pack_forget()
+        
+        self.steps[index].pack(fill="both", expand=True)
+        self.lbl_paginacion.configure(text=f"Paso {index + 1} de {len(self.steps)}")
+
+        if index == 0:
+            self.btn_atras.configure(text="Cancelar", fg_color="#D32F2F", hover_color="#B71C1C", state="normal")
+        else:
+            self.btn_atras.configure(text="Atrás", fg_color="gray", hover_color="#666666", state="normal")
+
+        if index == len(self.steps) - 1:
+            self.btn_siguiente.configure(text="GUARDAR FICHA", fg_color="#2E7D32")
+        else:
+            self.btn_siguiente.configure(text="Siguiente", fg_color=self.COLOR_BOTON)
+
+    def siguiente_paso(self):
+        # VALIDACIONES
+        if self.current_step == 0:
+            if not self.validar_campo(self.entry_ficha):
+                self.mostrar_mensaje("El No. de Ficha es obligatorio", True)
+                return
+            if not self.validar_campo(self.entry_clasif):
+                self.mostrar_mensaje("La Clasificación es obligatoria", True)
+                return
+
+        if self.current_step == 1:
+            if not self.validar_campo(self.entry_autor):
+                self.mostrar_mensaje("El Autor Personal es obligatorio", True)
+                return
+            if not self.validar_campo(self.entry_titulo):
+                self.mostrar_mensaje("El Título es obligatorio", True)
+                return
+
+        if self.current_step == len(self.steps) - 1:
+            self.evento_guardar()
+        else:
+            self.current_step += 1
+            self.mostrar_paso(self.current_step)
+            self.mostrar_mensaje("")
+
+    def anterior_paso(self):
+        if self.current_step > 0:
+            self.current_step -= 1
+            self.mostrar_paso(self.current_step)
+        else:
+            self.controller.volver_al_menu()
+            
+    def evento_guardar(self):
+        # 1. Recolectar Códigos de Ilustración
+        codigos_seleccionados = []
+        for chk in self.checks_ilustracion:
+            if chk.get() == 1: # Si está marcado
+                # Obtenemos solo la letra inicial (ej. "A" de "A - Ilustraciones")
+                texto_completo = chk.cget("text")
+                letra = texto_completo.split(" - ")[0] 
+                codigos_seleccionados.append(letra)
+        
+        # Unimos con comas: "A,B,M"
+        str_ilustraciones = ",".join(codigos_seleccionados)
+
+        # 2. Recolectar resto de datos
         datos = {
-            # Obra
-            "titulo": self.entry_titulo.get(),
+            "ficha_no": self.entry_ficha.get(),
             "isbn": self.entry_isbn.get(),
             "clasificacion": self.entry_clasif.get(),
-            "serie": self.entry_serie.get(),
+            "codigo_ilustracion": str_ilustraciones, # Enviamos la cadena
             "idioma": self.entry_idioma.get(),
-            "codigo_ilustracion": codigo_ilustracion,
-            "notas": self.entry_notas.get(),
             
-            # Autor/Editorial
             "autor_nombre": self.entry_autor.get(),
-            "editorial_nombre": self.entry_editorial.get(),
-            "lugar_publicacion": self.entry_lugar.get(),
+            "autor_corporativo": self.entry_autor_corp.get(),
+            "titulo": self.entry_titulo.get(),
+            "asientos_secundarios": self.entry_asientos.get(),
             
-            # Edición
             "edicion": self.entry_edicion.get(),
             "anio": self.entry_anio.get(),
+            "lugar_publicacion": self.entry_lugar.get(),
+            "editorial_nombre": self.entry_editorial.get(),
             "paginas": self.entry_paginas.get(),
             "dimensiones": self.entry_dimensiones.get(),
-
-            # Ejemplar
-            "no_adquisicion": self.entry_adquisicion.get(),
-            "num_ejemplar": self.entry_ejemplar.get(),
+            "serie": self.entry_serie.get(),
+            "descripcion": self.entry_descripcion.get(),
+            "temas": self.entry_temas.get(),
+            "ubicacion": self.entry_ubicacion.get(),
+            "numero_copia": self.entry_numero_copia.get(),
+            "analizo": self.entry_analizo.get(),
+            "reviso": self.entry_reviso.get(),
             "tomo": self.entry_tomo.get(),
             "volumen": self.entry_volumen.get()
         }
-        
-        # Enviar al controlador
         self.controller.registrar_libro_completo(datos)
     
     def mostrar_mensaje(self, mensaje, es_error=False):
-        color = "red" if es_error else "green"
+        color = "red" if es_error else "#2E7D32"
         self.lbl_mensaje.configure(text=mensaje, text_color=color)
