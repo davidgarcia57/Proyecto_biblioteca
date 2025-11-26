@@ -8,10 +8,10 @@ from src.model.Obra import Obra
 from src.model.Ejemplar import Ejemplar
 
 class CatalogoController:
-    def __init__(self, view_container, id_usuario_actual, app_main=None):
+    def __init__(self, view_container, id_usuario_actual, on_close=None):
         self.view_container = view_container
         self.id_usuario_actual = id_usuario_actual
-        self.app_main = app_main  # Referencia a la App principal para poder navegar
+        self.on_close = on_close
         
         # Inicializamos la vista pasándole este controlador (self)
         self.view = FrmNuevoLibro(view_container, self)
@@ -24,8 +24,8 @@ class CatalogoController:
         Método llamado por el botón 'Cancelar/Atrás' de la vista (en el paso 1).
         Usa la referencia a app_main para cambiar la pantalla al menú.
         """
-        if self.app_main:
-            self.app_main.mostrar_menu_principal()
+        if self.on_close:
+            self.on_close()
 
     def registrar_libro_completo(self, datos):
         # 1. Validaciones básicas

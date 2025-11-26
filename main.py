@@ -3,7 +3,7 @@ from src.controller.loginController import LoginController
 from src.controller.catalogo_controller import CatalogoController
 from src.view.circulacion.frm_menu import FrmMenuPrincipal
 from src.view.inventario.frm_buscar_libro import FmrBuscarLibro
-
+from src.controller.busqueda_controller import BusquedaController
 
 # Configuración de tema
 ctk.set_appearance_mode("light")  
@@ -51,15 +51,17 @@ class App(ctk.CTk):
         self.catalogo_controller = CatalogoController(
             self.container, 
             id_usuario_actual=self.usuario_actual.id_usuario, 
-            app_main=self
+            on_close=self.mostrar_menu_principal
         )
         self.catalogo_controller.view.pack(fill="both", expand=True)
     
     def mostrar_busqueda(self):
         self.limpiar_contenedor()
         # Pasamos 'self' como controlador para que el menú pueda llamar a mostrar_busqueda
-        self.menu_view = FmrBuscarLibro(self.container, controller=self)
-        self.menu_view.pack(fill="both", expand=True)
+        self.busqueda_controller = BusquedaController(
+            self.container, 
+            on_close=self.mostrar_menu_principal)
+        self.busqueda_controller.view.pack(fill="both", expand=True)
 
 if __name__ == "__main__":
     app = App()

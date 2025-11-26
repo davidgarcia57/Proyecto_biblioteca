@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from tkinter import StringVar
+from tkinter import StringVar, ttk # <--- OJO: Necesitamos 'ttk' para la tabla
 
 class FmrBuscarLibro(ctk.CTkFrame):
     
@@ -14,17 +14,20 @@ class FmrBuscarLibro(ctk.CTkFrame):
         self.controller = controller 
         
         self.configure(fg_color=self.COLOR_FONDO)
+        
+        # 1. VARIABLE DE CONTROL (Búsqueda en Vivo)
         self.texto_busqueda = StringVar(value="")
+        self.texto_busqueda.trace_add("write", self.al_escribir)
+        self.id_busqueda_programada = None 
         
         # Grid principal 
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1) # El contenido se expande, el header no
+        self.grid_rowconfigure(2, weight=1) # La fila 2 (tabla) es la que se estira
 
-        # --- HEADER CON BOTÓN VOLVER ---
+        # --- COMPONENTES ---
         self.crear_header()
-        
-        # --- ÁREA DE BÚSQUEDA ---
         self.crear_elementos_busqueda()
+        self.crear_tabla_resultados()
 
     def crear_header(self):
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -38,7 +41,7 @@ class FmrBuscarLibro(ctk.CTkFrame):
             text_color=self.COLOR_BOTON,
             border_width=2,
             border_color=self.COLOR_BOTON,
-            hover_color=self.COLOR_FONDO, # Efecto sutil
+            hover_color=self.COLOR_FONDO,
             width=100,
             command=self.volver_menu
         )
@@ -53,16 +56,15 @@ class FmrBuscarLibro(ctk.CTkFrame):
         lbl_titulo.pack(side="left", padx=20)
 
     def crear_elementos_busqueda(self):
-        # Contenedor para centrar la búsqueda
         frame_busqueda = ctk.CTkFrame(self, fg_color="transparent")
         frame_busqueda.grid(row=1, column=0, sticky="n", pady=30)
         
         self.txt_busqueda = ctk.CTkEntry(
             frame_busqueda, 
-            textvariable=self.texto_busqueda,
+            textvariable=self.texto_busqueda, # Conectado al StringVar
             placeholder_text="Título, Autor o ISBN del libro...",
             height=40,
-            width=400, # Un poco más ancho
+            width=400,
             fg_color="white", 
             text_color="black",
             border_color=self.COLOR_BOTON,
@@ -71,23 +73,90 @@ class FmrBuscarLibro(ctk.CTkFrame):
         )
         self.txt_busqueda.grid(row=0, column=0, padx=(0, 10))
 
+        # Botón opcional de momento
         self.btn_buscar = ctk.CTkButton(
             frame_busqueda,
-            text="🔍 BUSCAR",
-            width=120,
+            text="🔍",
+            width=60,
             height=40,
             font=("Georgia", 14, "bold"),
             fg_color=self.COLOR_BOTON,
             hover_color=self.COLOR_HOVER,
             text_color="white",
-            command=self.placeholder_funcion_buscar 
+            command=self.ejecutar_busqueda_ahora 
         )
         self.btn_buscar.grid(row=0, column=1)
+
+    # --- AQUÍ ESTABA LO QUE FALTABA: LA TABLA ---
+    def crear_tabla_resultados(self):
+        frame_tabla = ctk.CTkFrame(self, fg_color="transparent")
+        frame_tabla.grid(row=2, column=0, sticky="nsew", padx=20, pady=(0, 20))
         
-    def placeholder_funcion_buscar(self):
-        termino = self.texto_busqueda.get() 
-        print(f"Botón Buscar presionado. Se buscaría el término: {termino}")
+        # Estilos para que la tabla combine con el diseño
+        style = ttk.Style()
+        style.theme_use("clam")
+        style.configure("Treeview", 
+                        background="white",
+                        foreground=self.COLOR_TEXTO,
+                        rowheight=30,
+                        fieldbackground="white",
+                        font=("Arial", 11))
+        style.configure("Treeview.Heading", 
+                        background=self.COLOR_BOTON,
+                        foreground="white",
+                        font=("Georgia", 12, "bold"))
+        style.map("Treeview", background=[('selected', self.COLOR_HOVER)])
+
+        columns = ("id", "titulo", "isbn", "autor", "anio", "editorial")
+        self.tree = ttk.Treeview(frame_tabla, columns=columns, show="headings", selectmode="browse")
+        
+        # Encabezados
+        self.tree.heading("id", text="ID")
+        self.tree.heading("titulo", text="Título")
+        self.tree.heading("isbn", text="ISBN")
+        self.tree.heading("autor", text="Autor")
+        self.tree.heading("anio", text="Año")
+        self.tree.heading("editorial", text="Editorial")
+
+        # Columnas
+        self.tree.column("id", width=40, anchor="center")
+        self.tree.column("titulo", width=250)
+        self.tree.column("isbn", width=100)
+        self.tree.column("autor", width=150)
+        self.tree.column("anio", width=60, anchor="center")
+        self.tree.column("editorial", width=120)
+
+        # Scrollbar vertical
+        scrollbar = ttk.Scrollbar(frame_tabla, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscroll=scrollbar.set)
+        
+        self.tree.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+    # --- LÓGICA DE BÚSQUEDA EN VIVO ---
+    def al_escribir(self, *args):
+        if self.id_busqueda_programada:
+            self.after_cancel(self.id_busqueda_programada)
+        self.id_busqueda_programada = self.after(300, self.ejecutar_busqueda_ahora)
+
+    def ejecutar_busqueda_ahora(self):
+        termino = self.texto_busqueda.get()
+        if self.controller:
+            self.controller.realizar_busqueda(termino)
+
+    def mostrar_resultados(self, lista_resultados):
+        # 1. Limpiar tabla
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+            
+        # 2. Llenar tabla
+        if lista_resultados:
+            for row in lista_resultados:
+                # Ajusta esto al orden exacto del SELECT en Obra.py
+                # (id, titulo, isbn, anio, autor, editorial)
+                valores = (row[0], row[1], row[2], row[4], row[3], row[5])
+                self.tree.insert("", "end", values=valores)
 
     def volver_menu(self):
         if self.controller:
-            self.controller.mostrar_menu_principal()
+            self.controller.volver_al_menu()

@@ -56,3 +56,18 @@ class Obra:
     def relacionar_autor(self, cursor, id_autor, rol="Autor Principal"):
         sql = "INSERT INTO autores_obras (id_obra, id_autor, rol) VALUES (%s, %s, %s)"
         cursor.execute(sql, (self.id_obra, id_autor, rol))
+    
+    @staticmethod
+    def buscar_por_termino(cursosr,termino):
+        termino_like = f"%{termino}%"
+
+        sql = """
+            SELECT o.id_obra, o.titulo, o.isbn, o.anio_publicacion, a.nombre_completo, e.nombre
+            FROM obras o
+            LEFT JOIN autores_obras ao ON o.id_obra = ao.id_obra
+            LEFT JOIN autores a ON ao.id_autor = a.id_autor
+            LEFT JOIN editoriales e ON o.id_editorial = e.id_editorial
+            WHERE o.titulo LIKE %s OR o.isbn LIKE %s OR a.nombre_completo LIKE %s
+        """
+        cursosr.execute(sql, (termino_like, termino_like, termino_like))
+        return cursosr.fetchall()
