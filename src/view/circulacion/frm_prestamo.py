@@ -7,7 +7,25 @@ class FrmPrestamos(ctk.CTkFrame):
         super().__init__(master)
         self.controller = controller
         self.configure(fg_color="#F3E7D2")
-
+        
+        # ID LIBRO
+        ctk.CTkLabel(self.frm_form, text="ID Ejemplar (Libro):").pack(pady=(10,0), padx=20, anchor="w")
+        
+        # Frame contenedor para poner el Entry y el Botón juntos
+        frm_input_libro = ctk.CTkFrame(self.frm_form, fg_color="transparent")
+        frm_input_libro.pack(fill="x", padx=20, pady=5)
+        
+        self.txt_id_libro = ctk.CTkEntry(frm_input_libro, placeholder_text="ID Ejemplar")
+        self.txt_id_libro.pack(side="left", fill="x", expand=True)
+        
+        self.btn_buscar_libro = ctk.CTkButton(
+            frm_input_libro, 
+            text="🔍", 
+            width=40, 
+            command=self.controller.abrir_popup_libros # Conectamos al controller
+        )
+        self.btn_buscar_libro.pack(side="left", padx=(5,0))
+        
         # Layout: Izquierda (Formulario), Derecha (Tabla o info)
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=2)

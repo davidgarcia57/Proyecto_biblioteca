@@ -1,4 +1,5 @@
 from src.config.conexion_db import ConexionBD
+from src.view.circulacion.popup_busqueda import PopupBusqueda
 from src.view.circulacion.frm_prestamo import FrmPrestamos
 from src.model.Prestamo import Prestamo
 from datetime import datetime, timedelta
@@ -96,3 +97,37 @@ class PrestamoController:
                 self.view.mostrar_mensaje(f"Error al prestar: {e}", True)
             finally:
                 conn.close()
+
+def abrir_popup_libros(self):
+        # Función que se ejecuta al seleccionar un libro en el popup
+        def al_seleccionar_libro(id_ejemplar):
+            self.view.txt_id_libro.delete(0, 'end')
+            self.view.txt_id_libro.insert(0, id_ejemplar)
+            self.verificar_libro(id_ejemplar) # Valida visualmente
+
+        popup = PopupBusqueda(self.view, al_seleccionar_libro, tipo="libro")
+        
+        # Monkey patch o inyección simple para la búsqueda del popup
+        # Lo ideal es que el popup tenga su propio mini-controller, pero para hacerlo rápido:
+        def buscar_en_bd(event=None):
+            termino = popup.entry_busqueda.get()
+            conn = self.db.conectar()
+            cursor = conn.cursor()
+            # OJO: Buscamos ejemplares DISPONIBLES
+            sql = """
+                SELECT e.id_ejemplar, o.titulo, a.nombre_completo
+                FROM ejemplares e
+                JOIN obras o ON e.id_obra = o.id_obra
+                JOIN autores_obras ao ON o.id_obra = ao.id_obra
+                JOIN autores a ON ao.id_autor = a.id_autor
+                WHERE (o.titulo LIKE %s OR o.isbn LIKE %s)
+                AND e.estado = 'Disponible'
+                GROUP BY e.id_ejemplar
+            """
+            like = f"%{termino}%"
+            cursor.execute(sql, (like, like))
+            res = cursor.fetchall()
+            popup.cargar_datos(res)
+            conn.close()
+
+        popup.entry_busqueda.bind("<Return>", buscar_en_bd)
