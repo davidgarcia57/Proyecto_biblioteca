@@ -14,8 +14,8 @@ class App(ctk.CTk):
         super().__init__()
         
         self.title("Sistema de Biblioteca - Congreso de Durango")
-        self.geometry("1024x780")
-        self.minsize(800, 600)
+        self.state("zoomed")
+        self.minsize(1024, 768)
 
         # Contenedor principal
         self.container = ctk.CTkFrame(self)
