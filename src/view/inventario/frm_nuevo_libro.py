@@ -29,7 +29,7 @@ class FrmNuevoLibro(ctk.CTkFrame):
         
         self.lbl_titulo_main = ctk.CTkLabel(
             self.header_frame, 
-            text="Ficha de Ingreso de Libros (MARC 21)", 
+            text="Ficha de Ingreso de Libros ", 
             font=("Georgia", 26, "bold"), 
             text_color=self.COLOR_TEXTO
         )
@@ -156,10 +156,10 @@ class FrmNuevoLibro(ctk.CTkFrame):
 
         # Fila 0: Ficha y ISBN
         self.entry_ficha = self.crear_input(grid_frame, "Ficha No. *", 0, 0)
-        self.entry_isbn = self.crear_input(grid_frame, "020 ISBN", 0, 1)
+        self.entry_isbn = self.crear_input(grid_frame, "ISBN", 0, 1)
 
         # Fila 2: Clasificación
-        self.entry_clasif = self.crear_input(grid_frame, "050 Clasificación *", 2, 0, colspan=2)
+        self.entry_clasif = self.crear_input(grid_frame, "Clasificación *", 2, 0, colspan=2)
         
         # --- SECCIÓN DE CÓDIGO DE ILUSTRACIONES (CHECKBOXES) ---
         lbl_ilus = ctk.CTkLabel(grid_frame, text="Código de ilustraciones (Selección Múltiple)", font=("Georgia", 12, "bold"), text_color=self.COLOR_TEXTO)
@@ -206,7 +206,7 @@ class FrmNuevoLibro(ctk.CTkFrame):
 
         lbl_idioma = ctk.CTkLabel(
             frame_idioma,
-            text="546 Código de Lengua",
+            text="Código de Lengua",
             font=("Georgia", 12, "bold"),
             text_color=self.COLOR_TEXTO
         )
@@ -214,29 +214,29 @@ class FrmNuevoLibro(ctk.CTkFrame):
 
         self.entry_idioma = ctk.CTkEntry(
             frame_idioma,
-            placeholder_text="546 Código de Lengua",
+            placeholder_text="Código de Lengua",
             fg_color="white",
             text_color="black",
             border_color=self.COLOR_BOTON,
             height=35
         )
         self.entry_idioma.pack(fill="x", pady=(5,0))
-        self.entry_idioma.insert(0, "SPA")
+        self.entry_idioma.insert(0, "Español")
 
 
     def crear_paso_2(self):
         # PASO 2: Autoría y Título
         self.frm_step2 = ctk.CTkFrame(self.container, fg_color="transparent")
-        self.crear_encabezado_paso(self.frm_step2, "2. Autoría y Título (100, 110, 245, 700)")
+        self.crear_encabezado_paso(self.frm_step2, "2. Autoría y Título")
 
         grid_frame = ctk.CTkFrame(self.frm_step2, fg_color="transparent")
         grid_frame.pack(fill="both", expand=True)
         grid_frame.columnconfigure((0, 1), weight=1)
 
-        self.entry_autor = self.crear_input(grid_frame, "100 Autor Personal (Principal) *", 0, 0, colspan=2)
-        self.entry_autor_corp = self.crear_input(grid_frame, "110 Autor Corporativo", 2, 0, colspan=2)
-        self.entry_titulo = self.crear_input(grid_frame, "245 Título / Mención de responsabilidad *", 4, 0, colspan=2)
-        self.entry_asientos = self.crear_input(grid_frame, "700 Asientos Secundarios (Coautores)", 6, 0, colspan=2)
+        self.entry_autor = self.crear_input(grid_frame, "Autor Personal (Principal) *", 0, 0, colspan=2)
+        self.entry_autor_corp = self.crear_input(grid_frame, "Autor Corporativo", 2, 0, colspan=2)
+        self.entry_titulo = self.crear_input(grid_frame, "Título / Mención de responsabilidad *", 4, 0, colspan=2)
+        self.entry_asientos = self.crear_input(grid_frame, "Asientos Secundarios (Coautores)", 6, 0, colspan=2)
 
 
     def crear_paso_3(self):
@@ -248,15 +248,14 @@ class FrmNuevoLibro(ctk.CTkFrame):
         grid_frame.pack(fill="both", expand=True)
         grid_frame.columnconfigure((0, 1), weight=1)
 
-        self.entry_edicion = self.crear_input(grid_frame, "250 Mención de Edición", 0, 0)
+        self.entry_edicion = self.crear_input(grid_frame, "Mención de Edición", 0, 0)
         self.entry_anio = self.crear_input(grid_frame, "Fecha de publicación", 0, 1)
-        self.entry_lugar = self.crear_input(grid_frame, "260 Lugar de publicación", 2, 0)
+        self.entry_lugar = self.crear_input(grid_frame, "Lugar de publicación", 2, 0)
         self.entry_editorial = self.crear_input(grid_frame, "Editorial", 2, 1)
-        self.entry_paginas = self.crear_input(grid_frame, "300 Páginas, volumen, etc.", 4, 0)
+        self.entry_paginas = self.crear_input(grid_frame, "Páginas, volumen, etc.", 4, 0)
         self.entry_dimensiones = self.crear_input(grid_frame, "Dimensiones (cm)", 4, 1)
-        self.entry_serie = self.crear_input(grid_frame, "440 Serie", 6, 0, colspan=2)
-        self.entry_descripcion = self.crear_input(grid_frame, "500 Notas Generales / Historial", 8, 0)
-        self.entry_temas = self.crear_input(grid_frame, "650 Temas / Encabezamientos", 8, 1)
+        self.entry_serie = self.crear_input(grid_frame, "Serie", 6, 0, colspan=2)
+        self.entry_descripcion = self.crear_input(grid_frame, "Notas Generales / Historial", 8, 0)
 
 
     def crear_paso_4(self):
@@ -273,9 +272,6 @@ class FrmNuevoLibro(ctk.CTkFrame):
 
         self.entry_numero_copia = self.crear_input(grid_frame, "Ejemplar (Ej. Copia 1)", 0, 1)
         self.entry_numero_copia.insert(0, "Copia 1")
-        
-        self.entry_analizo = self.crear_input(grid_frame, "Analizó", 2, 0)
-        self.entry_reviso = self.crear_input(grid_frame, "Revisó", 2, 1)
         
         self.entry_tomo = self.crear_input(grid_frame, "Tomo (Opcional)", 4, 0)
         self.entry_volumen = self.crear_input(grid_frame, "Volumen (Opcional)", 4, 1)
@@ -368,11 +364,8 @@ class FrmNuevoLibro(ctk.CTkFrame):
             "dimensiones": self.entry_dimensiones.get(),
             "serie": self.entry_serie.get(),
             "descripcion": self.entry_descripcion.get(),
-            "temas": self.entry_temas.get(),
             "ubicacion": self.entry_ubicacion.get(),
             "numero_copia": self.entry_numero_copia.get(),
-            "analizo": self.entry_analizo.get(),
-            "reviso": self.entry_reviso.get(),
             "tomo": self.entry_tomo.get(),
             "volumen": self.entry_volumen.get()
         }

@@ -2,9 +2,9 @@ class Obra:
     def __init__(self, titulo, id_editorial, isbn=None, idioma="Español", 
                  anio_publicacion=None, edicion=None, clasificacion=None, 
                  paginas=None, dimensiones=None, serie=None, 
-                 tomo=None, volumen=None, descripcion=None, temas=None,
+                 tomo=None, volumen=None, descripcion=None,
                  ficha_no=None, autor_corporativo=None, asientos_secundarios=None,
-                 codigo_ilustracion=None, analizo=None, reviso=None, lugar_publicacion=None,
+                 codigo_ilustracion=None,lugar_publicacion=None,
                  id_obra=None):
         
         self.id_obra = id_obra
@@ -21,13 +21,10 @@ class Obra:
         self.tomo = tomo
         self.volumen = volumen
         self.descripcion = descripcion
-        self.temas = temas
         self.ficha_no = ficha_no
         self.autor_corporativo = autor_corporativo
         self.asientos_secundarios = asientos_secundarios
         self.codigo_ilustracion = codigo_ilustracion
-        self.analizo = analizo
-        self.reviso = reviso
         self.lugar_publicacion = lugar_publicacion
 
     def guardar(self, cursor):
@@ -35,18 +32,18 @@ class Obra:
             INSERT INTO obras (
                 titulo, isbn, id_editorial, idioma, anio_publicacion, 
                 edicion, clasificacion, paginas, dimensiones, serie, 
-                tomo, volumen, descripcion, temas,
+                tomo, volumen, descripcion,
                 ficha_no, autor_corporativo, asientos_secundarios,
-                codigo_ilustracion, analizo, reviso, lugar_publicacion
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                codigo_ilustracion, lugar_publicacion
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         valores = (
             self.titulo, self.isbn, self.id_editorial, self.idioma,
             self.anio_publicacion, self.edicion, self.clasificacion,
             self.paginas, self.dimensiones, self.serie, 
-            self.tomo, self.volumen, self.descripcion, self.temas,
+            self.tomo, self.volumen, self.descripcion,
             self.ficha_no, self.autor_corporativo, self.asientos_secundarios,
-            self.codigo_ilustracion, self.analizo, self.reviso, self.lugar_publicacion
+            self.codigo_ilustracion, self.lugar_publicacion
         )
         cursor.execute(sql, valores)
         self.id_obra = cursor.lastrowid
