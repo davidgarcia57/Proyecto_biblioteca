@@ -1,145 +1,111 @@
 import customtkinter as ctk
 
 class FrmMenuPrincipal(ctk.CTkFrame):
-    """
-    Frame del menú principal. 
-    """
-class FrmMenuPrincipal(ctk.CTkFrame):
     def __init__(self, master, controller=None):
         super().__init__(master)
         self.controller = controller
         
         # --- PALETA DE COLORES ---
-        self.COLOR_FONDO = "#F3E7D2"      # Beige 
-        self.COLOR_TEXTO = "#5a3b2e"      # Marrón Oscuro 
-        self.COLOR_BOTON = "#A7744A"      # Bronce 
-        self.COLOR_HOVER = "#8c5e3c"      # Bronce Oscuro 
-        self.COLOR_UTILIDAD = self.COLOR_TEXTO # Color para Salir/Cerrar Sesión
-
-        # Fondo principal
-        self.configure(fg_color=self.COLOR_FONDO)
-
-        # Centrar el contenido principal
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1) # Fila central de botones
-
-        # ----------------------------------------------
-        # --- 1. BOTONES DE CERRAR SESIÓN Y SALIR ---
-        # ----------------------------------------------
-        self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.header_frame.grid(row=0, column=0, sticky="ew", padx=30, pady=(25, 10))
-        self.header_frame.grid_columnconfigure(0, weight=0) 
-        self.header_frame.grid_columnconfigure(1, weight=1) 
-        self.header_frame.grid_columnconfigure(2, weight=0) 
-
-        # Botón Cerrar Sesión
-        self.btn_cerrar_sesion = ctk.CTkButton(
-            self.header_frame, 
-            text="Cerrar Sesión", 
-            font=("Georgia", 16, "bold"), 
-            fg_color="transparent", 
-            text_color=self.COLOR_UTILIDAD, 
-            border_color=self.COLOR_UTILIDAD, 
-            border_width=2,
-            hover_color=self.COLOR_HOVER, 
-            width=160,
-            height=45, 
-            corner_radius=10, 
-            command=lambda: print("Cerrar Sesión (placeholder)") 
-        )
-        self.btn_cerrar_sesion.grid(row=0, column=0, sticky="w", padx=10)
+        self.COLOR_FONDO_MENU = "#A7744A"    # El color Bronce para la barra lateral
+        self.COLOR_FONDO_MAIN = "#F3E7D2"    # El Beige para el contenido
+        self.COLOR_BOTON_MENU = "#8c5e3c"    # Un poco más oscuro para botones
+        self.COLOR_TEXTO = "#5a3b2e"         # Marrón
         
-        # Contenedor para el Título y Subtítulo
-        self.title_container = ctk.CTkFrame(self.header_frame, fg_color="transparent")
-        self.title_container.grid(row=0, column=1, padx=20, sticky="n")
+        # Configuración del grid principal (2 columnas: Menú lateral y Contenido)
+        self.configure(fg_color=self.COLOR_FONDO_MAIN)
+        
+        # Columna 0: Barra lateral (fija, ancho pequeño)
+        # Columna 1: Contenido principal (se expande)
+        self.grid_columnconfigure(0, weight=0) 
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
-        self.lbl_titulo = ctk.CTkLabel(
-            self.title_container, 
-            text="MENÚ PRINCIPAL", 
-            font=("Georgia", 40, "bold"), 
+        # ------------------------------------------------
+        # 1. BARRA LATERAL (Izquierda)
+        # ------------------------------------------------
+        self.sidebar_frame = ctk.CTkFrame(self, width=250, corner_radius=0, fg_color=self.COLOR_FONDO_MENU)
+        self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
+        self.sidebar_frame.grid_rowconfigure(4, weight=1) # Empuja elementos hacia abajo si es necesario
+
+        # Título / Logo en la barra
+        self.lbl_logo = ctk.CTkLabel(
+            self.sidebar_frame, 
+            text="BIBLIOTECA\nCONGRESO", 
+            font=("Georgia", 20, "bold"), 
+            text_color="white"
+        )
+        self.lbl_logo.pack(pady=(30, 30), padx=20)
+
+        # Botones de Navegación (Estilo menú)
+        self.crear_boton_menu("🏠 Inicio", lambda: print("Ir a Inicio"))
+        self.crear_boton_menu("🔎 Buscar Libros", self.controller.mostrar_busqueda)
+        self.crear_boton_menu("➕ Nuevo Libro", self.controller.mostrar_catalogo)
+        self.crear_boton_menu("📑 Préstamos", lambda: print("Ir a Prestamos"))
+        self.crear_boton_menu("👥 Usuarios", lambda: print("Ir a Usuarios"))
+
+        # ------------------------------------------------
+        # 2. ÁREA PRINCIPAL (Derecha)
+        # ------------------------------------------------
+        self.main_content = ctk.CTkFrame(self, fg_color=self.COLOR_FONDO_MAIN, corner_radius=0)
+        self.main_content.grid(row=0, column=1, sticky="nsew")
+        self.main_content.grid_rowconfigure(1, weight=1) # Fila 1 se expande (contenido)
+        self.main_content.grid_columnconfigure(0, weight=1)
+
+        # --- HEADER (Barra superior) ---
+        self.header_frame = ctk.CTkFrame(self.main_content, height=60, fg_color="white", corner_radius=0)
+        self.header_frame.grid(row=0, column=0, sticky="ew")
+        
+        # Título de la sección actual
+        self.lbl_seccion = ctk.CTkLabel(
+            self.header_frame, 
+            text="Panel de Control", 
+            font=("Arial", 20, "bold"), 
             text_color=self.COLOR_TEXTO
         )
-        self.lbl_titulo.pack()
+        self.lbl_seccion.pack(side="left", padx=20, pady=10)
 
-        #Aquí una pequeña descripción 
-        self.lbl_subtitulo = ctk.CTkLabel(
-            self.title_container,
-            text="Seleccione una opción para gestionar el inventario y préstamos.",
-            font=("Arial", 16), 
-            text_color=self.COLOR_TEXTO 
+        # BOTÓN CERRAR SESIÓN
+        self.btn_logout = ctk.CTkButton(
+            self.header_frame,
+            text="Cerrar Sesión",
+            fg_color="#D32F2F", # Rojo discreto para salir
+            hover_color="#B71C1C",
+            width=120,
+            height=35,
+            command=self.controller.mostrar_login # Vuelve al login
         )
-        self.lbl_subtitulo.pack(pady=(5, 15))
+        self.btn_logout.pack(side="right", padx=20, pady=10)
 
-        # ----------------------------------------------
-        # --- 2. BOTONES PRINCIPALES ---
-        # ----------------------------------------------
-        self.main_container = ctk.CTkFrame(self, fg_color="transparent")
-        self.main_container.grid(row=1, column=0, sticky="nsew", padx=80, pady=(50, 50))
+        # --- CONTENIDO CENTRAL (Dashboard) ---
+        self.dashboard_frame = ctk.CTkFrame(self.main_content, fg_color="transparent")
+        self.dashboard_frame.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
         
-        self.main_container.grid_columnconfigure((0, 1), weight=1)
-        self.main_container.grid_rowconfigure((0, 1), weight=1)
+        # Aquí podemos poner "Tarjetas" de resumen para que no se vea vacío
+        self.crear_tarjeta_info(self.dashboard_frame, "Total Libros", "120", 0, 0)
+        self.crear_tarjeta_info(self.dashboard_frame, "Préstamos Activos", "15", 0, 1)
+        self.crear_tarjeta_info(self.dashboard_frame, "Usuarios Registrados", "45", 0, 2)
 
-        # El estilo de botón para las opciones principales
-        self.MAIN_BTN_CONFIG = {
-            "font": ("Georgia", 24, "bold"), 
-            "fg_color": self.COLOR_BOTON,
-            "hover_color": self.COLOR_HOVER,
-            "text_color": "white", 
-            "width": 200, 
-            "height": 80,  
-            "corner_radius": 15, 
-            "border_width": 4, 
-            "border_color": self.COLOR_TEXTO, 
-            "compound": "left", 
-            "anchor": "center",
-            "state": "normal"
-        }
+    def crear_boton_menu(self, texto, comando):
+        btn = ctk.CTkButton(
+            self.sidebar_frame, 
+            text=texto, 
+            anchor="w", 
+            fg_color="transparent", 
+            text_color="white",
+            hover_color=self.COLOR_BOTON_MENU,
+            font=("Arial", 16, "bold"),
+            height=50,
+            command=comando
+        )
+        btn.pack(fill="x", padx=10, pady=5)
+
+    def crear_tarjeta_info(self, parent, titulo, dato, fila, col):
+        card = ctk.CTkFrame(parent, fg_color="white", width=250, height=150)
+        card.grid(row=fila, column=col, padx=10, pady=10)
         
-        BTN_PADX = 25
-        BTN_PADY = 25
+        lbl_t = ctk.CTkLabel(card, text=titulo, font=("Arial", 14), text_color="gray")
+        lbl_t.place(relx=0.5, rely=0.3, anchor="center")
         
-        # Botón 1: Préstamos
-        self.btn_prestamos = ctk.CTkButton(
-            self.main_container,
-            text="📑 PRÉSTAMOS", 
-            command=lambda: print("Navegar a Préstamos (placeholder)"),
-            **self.MAIN_BTN_CONFIG
-        )
-        self.btn_prestamos.grid(row=0, column=0, padx=BTN_PADX, pady=BTN_PADY, sticky="nsew")
-
-        #Botón 2: Buscar Libros
-        self.btn_buscar = ctk.CTkButton(
-            self.main_container,
-            text="🔎 BUSCAR LIBROS",
-            command=self.controller.mostrar_busqueda,
-            **self.MAIN_BTN_CONFIG
-        )
-        self.btn_buscar.grid(row=0, column=1, padx=BTN_PADX, pady=BTN_PADY, sticky="nsew")
-
-        # Botón 3: Agregar
-        self.btn_agregar = ctk.CTkButton(
-            self.main_container,
-            text="➕ AGREGAR LIBROS",
-            command=self.controller.mostrar_catalogo, # <--- Navega al formulario
-            **self.MAIN_BTN_CONFIG
-        )
-        self.btn_agregar.grid(row=1, column=0, padx=25, pady=25, sticky="nsew")
-
-        # Botón 4: Otro 
-        self.btn_otro = ctk.CTkButton(
-            self.main_container,
-            text="⚙️ OTRAS OPCIONES",
-            command=lambda: print("Navegar a Otras Opciones (placeholder)"),
-            **self.MAIN_BTN_CONFIG
-        )
-        self.btn_otro.grid(row=1, column=1, padx=BTN_PADX, pady=BTN_PADY, sticky="nsew")
-
-        # Botón 5: Cerrar Sesión
-        self.btn_cerrar_sesion = ctk.CTkButton(
-            self.header_frame, 
-            text="Cerrar Sesión", 
-            command=self.controller.mostrar_login,  # <--- Llama a volver al login
-            **self.MAIN_BTN_CONFIG
-        )
-        self.btn_cerrar_sesion.grid(row=0, column=0, sticky="w", padx=10)
+        lbl_d = ctk.CTkLabel(card, text=dato, font=("Arial", 30, "bold"), text_color=self.COLOR_TEXTO)
+        lbl_d.place(relx=0.5, rely=0.6, anchor="center")
         
