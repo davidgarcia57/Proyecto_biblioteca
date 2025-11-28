@@ -1,3 +1,5 @@
+from src.config.conexion_db import ConexionBD
+
 class Obra:
     def __init__(self, titulo, id_editorial, isbn=None, idioma="Español", 
                  anio_publicacion=None, edicion=None, clasificacion=None, 
@@ -68,3 +70,36 @@ class Obra:
         """
         cursosr.execute(sql, (termino_like, termino_like, termino_like))
         return cursosr.fetchall()
+
+    @staticmethod
+    def buscar_disponibles(termino):
+        """
+        Busca ejemplares que estén DISPONIBLES para préstamo.
+        Retorna una lista de tuplas: (id_ejemplar, titulo, autor)
+        """
+        db = ConexionBD()
+        conn = db.conectar()
+        resultados = []
+        
+        if conn:
+            try:
+                cursor = conn.cursor()
+                sql = """
+                    SELECT e.id_ejemplar, o.titulo, a.nombre_completo
+                    FROM ejemplares e
+                    JOIN obras o ON e.id_obra = o.id_obra
+                    LEFT JOIN autores_obras ao ON o.id_obra = ao.id_obra
+                    LEFT JOIN autores a ON ao.id_autor = a.id_autor
+                    WHERE (o.titulo LIKE %s OR o.isbn LIKE %s)
+                    AND e.estado = 'Disponible'
+                    GROUP BY e.id_ejemplar
+                """
+                like = f"%{termino}%"
+                cursor.execute(sql, (like, like))
+                resultados = cursor.fetchall()
+            except Exception as e:
+                print(f"Error al buscar disponibles: {e}")
+            finally:
+                conn.close()
+        
+        return resultados

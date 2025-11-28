@@ -7,31 +7,13 @@ class FrmPrestamos(ctk.CTkFrame):
         super().__init__(master)
         self.controller = controller
         self.configure(fg_color="#F3E7D2")
-        
-        # ID LIBRO
-        ctk.CTkLabel(self.frm_form, text="ID Ejemplar (Libro):").pack(pady=(10,0), padx=20, anchor="w")
-        
-        # Frame contenedor para poner el Entry y el Botón juntos
-        frm_input_libro = ctk.CTkFrame(self.frm_form, fg_color="transparent")
-        frm_input_libro.pack(fill="x", padx=20, pady=5)
-        
-        self.txt_id_libro = ctk.CTkEntry(frm_input_libro, placeholder_text="ID Ejemplar")
-        self.txt_id_libro.pack(side="left", fill="x", expand=True)
-        
-        self.btn_buscar_libro = ctk.CTkButton(
-            frm_input_libro, 
-            text="🔍", 
-            width=40, 
-            command=self.controller.abrir_popup_libros # Conectamos al controller
-        )
-        self.btn_buscar_libro.pack(side="left", padx=(5,0))
-        
-        # Layout: Izquierda (Formulario), Derecha (Tabla o info)
+
+        # 1. Configuración del Grid Principal
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=2)
         self.grid_rowconfigure(1, weight=1)
 
-        # --- HEADER ---
+        # 2. Header (Fila 0)
         self.header = ctk.CTkFrame(self, fg_color="transparent")
         self.header.grid(row=0, column=0, columnspan=2, sticky="ew", padx=20, pady=10)
         
@@ -40,18 +22,32 @@ class FrmPrestamos(ctk.CTkFrame):
         
         ctk.CTkLabel(self.header, text="Gestión de Préstamos", font=("Georgia", 24, "bold"), text_color="#5a3b2e").pack(side="left", padx=20)
 
-        # --- FORMULARIO (Izquierda) ---
+        # 3. Formulario (Fila 1, Col 0) - ¡CREAR ESTO PRIMERO!
         self.frm_form = ctk.CTkFrame(self, fg_color="white", corner_radius=10)
         self.frm_form.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
         
         ctk.CTkLabel(self.frm_form, text="Nuevo Préstamo", font=("Arial", 16, "bold"), text_color="#A7744A").pack(pady=15)
 
+        # --- AHORA SÍ AGREGAMOS LOS WIDGETS ---
+        
         # ID LIBRO
         ctk.CTkLabel(self.frm_form, text="ID Ejemplar (Libro):").pack(pady=(10,0), padx=20, anchor="w")
-        self.txt_id_libro = ctk.CTkEntry(self.frm_form, placeholder_text="Escanea código o escribe ID")
-        self.txt_id_libro.pack(fill="x", padx=20, pady=5)
-        # Binds para buscar al presionar Enter
+        
+        # Frame para input y botón de búsqueda
+        frm_input_libro = ctk.CTkFrame(self.frm_form, fg_color="transparent")
+        frm_input_libro.pack(fill="x", padx=20, pady=5)
+        
+        self.txt_id_libro = ctk.CTkEntry(frm_input_libro, placeholder_text="Escanea código o escribe ID")
+        self.txt_id_libro.pack(side="left", fill="x", expand=True)
         self.txt_id_libro.bind("<Return>", lambda e: self.buscar_libro())
+        
+        self.btn_buscar_libro = ctk.CTkButton(
+            frm_input_libro, 
+            text="🔍", 
+            width=40, 
+            command=self.controller.abrir_popup_libros 
+        )
+        self.btn_buscar_libro.pack(side="left", padx=(5,0))
 
         self.lbl_info_libro = ctk.CTkLabel(self.frm_form, text="[Esperando libro...]", text_color="gray", wraplength=250)
         self.lbl_info_libro.pack(pady=5)
@@ -75,7 +71,7 @@ class FrmPrestamos(ctk.CTkFrame):
         self.btn_prestar = ctk.CTkButton(self.frm_form, text="REALIZAR PRÉSTAMO", fg_color="#2E7D32", height=40, font=("Arial", 14, "bold"), command=self.evento_prestar)
         self.btn_prestar.pack(pady=30, padx=20, fill="x")
 
-        # --- PANEL DERECHO (Placeholder para lista de préstamos) ---
+        # 4. Panel Derecho (Fila 1, Col 1)
         self.frm_lista = ctk.CTkFrame(self, fg_color="white")
         self.frm_lista.grid(row=1, column=1, sticky="nsew", padx=(0,20), pady=20)
         
@@ -85,6 +81,7 @@ class FrmPrestamos(ctk.CTkFrame):
                "3. Seleccione los días y haga clic en Realizar Préstamo.")
         ctk.CTkLabel(self.frm_lista, text=msg, justify="left", wraplength=400).pack(padx=20)
 
+    # --- MÉTODOS DE LA CLASE ---
     def buscar_libro(self):
         id_libro = self.txt_id_libro.get()
         if id_libro:
@@ -103,9 +100,11 @@ class FrmPrestamos(ctk.CTkFrame):
         )
         
     def mostrar_mensaje(self, msg, error=False):
-        color = "red" if error else "green"
-        # Aquí podrías usar un label o messagebox
-        messagebox.showinfo("Información", msg) if not error else messagebox.showerror("Error", msg)
+        # Usamos messagebox para feedback claro
+        if error:
+            messagebox.showerror("Error", msg)
+        else:
+            messagebox.showinfo("Información", msg)
         
     def actualizar_info_libro(self, texto, disponible=True):
         self.lbl_info_libro.configure(text=texto, text_color="green" if disponible else "red")

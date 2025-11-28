@@ -1,12 +1,5 @@
 import customtkinter as ctk
-#Imports del controlador
-from src.controller.busqueda_controller import BusquedaController
-from src.controller.prestamo_controller import PrestamoController
-from src.controller.login_controller import LoginController
-from src.controller.catalogo_controller import CatalogoController
-#Imports del view
-from src.view.circulacion.frm_menu import FrmMenuPrincipal
-from src.view.inventario.frm_buscar_libro import FmrBuscarLibro 
+from src.navegador import Router
 
 # Configuración de tema
 ctk.set_appearance_mode("light")  
@@ -23,53 +16,23 @@ class App(ctk.CTk):
         # Contenedor principal
         self.container = ctk.CTkFrame(self)
         self.container.pack(fill="both", expand=True)
+        
+        # Estado de la aplicación
+        self.usuario_actual = None
 
-        # Iniciamos en el Login
-        self.mostrar_login()
+        # Inicializamos el Router pasándole 'self' (esta App)
+        self.router = Router(self)
 
-    def limpiar_contenedor(self):
-        """Elimina la vista actual para mostrar una nueva."""
-        for widget in self.container.winfo_children():
-            widget.destroy()
-
-    def mostrar_login(self):
-        self.limpiar_contenedor()
-        self.login_controller = LoginController(self.container, self)
-        self.login_controller.view.pack(fill="both", expand=True)
+        # Iniciamos en el Login usando el router
+        self.router.mostrar_login()
 
     def iniciar_sesion_exitoso(self, usuario_obj):
+        """
+        Método llamado por LoginController cuando el login es correcto.
+        Actualiza el estado y usa el router para cambiar de pantalla.
+        """
         self.usuario_actual = usuario_obj
-        self.mostrar_menu_principal()
-
-    def mostrar_menu_principal(self):
-        self.limpiar_contenedor()
-        self.menu_view = FrmMenuPrincipal(self.container, controller=self)
-        self.menu_view.pack(fill="both", expand=True)
-
-    def mostrar_catalogo(self):
-        self.limpiar_contenedor()
-        self.catalogo_controller = CatalogoController(
-            self.container, 
-            id_usuario_actual=self.usuario_actual.id_usuario, 
-            on_close=self.mostrar_menu_principal
-        )
-        self.catalogo_controller.view.pack(fill="both", expand=True)
-    
-    def mostrar_busqueda(self):
-        self.limpiar_contenedor()
-        self.busqueda_controller = BusquedaController(
-            self.container, 
-            on_close=self.mostrar_menu_principal)
-        self.busqueda_controller.view.pack(fill="both", expand=True)
-
-    def mostrar_prestamos(self):
-        self.limpiar_contenedor()
-        self.prestamo_controller = PrestamoController(
-            self.container, 
-            usuario_sistema=self.usuario_actual, 
-            on_close=self.mostrar_menu_principal
-        )
-        self.prestamo_controller.view.pack(fill="both", expand=True)
+        self.router.mostrar_menu_principal()
 
 if __name__ == "__main__":
     app = App()
