@@ -370,7 +370,55 @@ class FrmNuevoLibro(ctk.CTkFrame):
             "volumen": self.entry_volumen.get()
         }
         self.controller.registrar_libro_completo(datos)
-    
+
+    def limpiar_formulario(self):
+        """Resetea todos los campos al estado inicial para un nuevo registro"""
+        # 1. Lista de todos los campos de texto
+        campos = [
+            self.entry_ficha, self.entry_isbn, self.entry_clasif, 
+            self.entry_autor, self.entry_autor_corp, self.entry_titulo, self.entry_asientos,
+            self.entry_edicion, self.entry_anio, self.entry_lugar, self.entry_editorial,
+            self.entry_paginas, self.entry_dimensiones, self.entry_serie, self.entry_descripcion,
+            self.entry_tomo, self.entry_volumen
+        ]
+        
+        # Limpiamos texto normal
+        for campo in campos:
+            campo.delete(0, 'end')
+            campo.configure(border_color=self.COLOR_BOTON) # Resetear color rojo si hubo error
+
+        # 2. Resetear campos con valores por defecto
+        self.entry_idioma.delete(0, 'end')
+        self.entry_idioma.insert(0, "Español")
+        
+        self.entry_ubicacion.delete(0, 'end')
+        self.entry_ubicacion.insert(0, "General")
+        
+        self.entry_numero_copia.delete(0, 'end')
+        self.entry_numero_copia.insert(0, "Copia 1")
+
+        # 3. Desmarcar todos los checkboxes
+        for chk in self.checks_ilustracion:
+            chk.deselect()
+
+        # 4. Volver al paso 1
+        self.current_step = 0
+        self.mostrar_paso(0)
+        self.lbl_mensaje.configure(text="") # Limpiar mensaje inferior si hubiera
+
+    def confirmar_registro(self, id_generado):
+        """Muestra popup de éxito y pregunta si desea continuar"""
+        respuesta = messagebox.askyesno(
+            "Registro Exitoso",
+            f"¡Libro guardado correctamente!\n\nNo. Adquisición Asignado: {id_generado}\n\n¿Desea registrar otro libro ahora?"
+        )
+        
+        if respuesta: # Si dice SÍ (True)
+            self.limpiar_formulario()
+        else: # Si dice NO (False)
+            self.controller.volver_al_menu()
+
+
     def mostrar_mensaje(self, mensaje, es_error=False):
         color = "red" if es_error else "#2E7D32"
         self.lbl_mensaje.configure(text=mensaje, text_color=color)

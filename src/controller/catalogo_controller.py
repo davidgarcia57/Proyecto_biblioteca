@@ -93,7 +93,7 @@ class CatalogoController:
             conn.commit()
             
             # --- MENSAJE FINAL CON EL NÚMERO DE ADQUISICIÓN ---
-            self.view.mostrar_mensaje(f"¡Éxito! Libro registrado.\nNo. Adquisición Asignado: {id_generado}")
+            self.view.confirmar_registro(id_generado)
 
         except Exception as e:
             conn.rollback() # Si falla algo, deshacemos todo
