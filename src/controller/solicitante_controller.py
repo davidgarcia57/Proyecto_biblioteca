@@ -1,6 +1,7 @@
 from src.view.circulacion.frm_solicitantes import FrmSolicitantes
 from src.model.Solicitantes import Solicitante
 from tkinter import messagebox
+import re
 
 class SolicitanteController:
     def __init__(self, view_container, on_close=None):
@@ -26,6 +27,19 @@ class SolicitanteController:
             self.view.tree.insert("", "end", values=(s.id_prestatario, s.nombre_completo, s.telefono, s.email))
 
     def guardar_solicitante(self, datos, id_actual=None):
+        
+        # 1. Validar Email con Regex
+        patron_email = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+        if datos["email"] and not re.match(patron_email, datos["email"]):
+            messagebox.showerror("Error", "El formato del correo electrónico no es válido.")
+            return
+        
+        # 2. Validar Teléfono (Solo números y longitud)
+        if datos["telefono"] and (not datos["telefono"].isdigit() or len(datos["telefono"]) != 10):
+            messagebox.showerror("Error", "El teléfono debe ser de 10 dígitos numéricos.")
+            return
+        
+        # 3. Validad que exista Nombre
         if not datos["nombre"]:
             messagebox.showerror("Error", "El nombre es obligatorio")
             return
