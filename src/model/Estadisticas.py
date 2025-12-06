@@ -15,21 +15,25 @@ class Estadisticas:
             try:
                 cursor = conn.cursor()
                 
-                # 1. Total de Obras (Títulos diferentes)
-                cursor.execute("SELECT COUNT(*) FROM obras")
+                # 1. Total de Obras Activas
+                # Explicación: Contamos los ID de obras únicos (DISTINCT) que están en la tabla ejemplares
+                # PERO solo aquellos cuyo estado NO sea 'Baja'.
+                sql_obras = "SELECT COUNT(DISTINCT id_obra) FROM ejemplares WHERE estado != 'Baja'"
+                cursor.execute(sql_obras)
                 stats["libros"] = cursor.fetchone()[0]
                 
-                # 2. Préstamos Activos
+                # 2. Préstamos Activos (Sin cambios)
                 cursor.execute("SELECT COUNT(*) FROM prestamos WHERE estado = 'Activo'")
                 stats["prestamos"] = cursor.fetchone()[0]
                 
-                # 3. Solicitantes (Personas que pueden pedir libros)
+                # 3. Solicitantes (Sin cambios)
                 cursor.execute("SELECT COUNT(*) FROM solicitantes")
                 stats["usuarios"] = cursor.fetchone()[0]
                 
             except Exception as e:
                 print(f"Error estadísticas: {e}")
             finally:
+                cursor.close()
                 conn.close()
                 
         return stats

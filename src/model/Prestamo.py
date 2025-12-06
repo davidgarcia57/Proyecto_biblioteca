@@ -55,3 +55,53 @@ class Prestamo:
         # 2. Liberar libro
         sql_lib = "UPDATE ejemplares SET estado = 'Disponible' WHERE id_ejemplar = %s"
         cursor.execute(sql_lib, (id_ejemplar,))
+
+    @staticmethod
+    def obtener_activos():
+        from src.config.conexion_db import ConexionBD
+        db = ConexionBD()
+        conn = db.conectar()
+        lista = []
+        if conn:
+            try:
+                cursor = conn.cursor()
+                # Unimos 4 tablas: Prestamo -> Solicitante -> Ejemplar -> Obra
+                sql = """
+                    SELECT p.id_prestamo, s.nombre_completo, o.titulo, p.fecha_devolucion_esperada
+                    FROM prestamos p
+                    JOIN solicitantes s ON p.id_prestatario = s.id_prestatario
+                    JOIN ejemplares e ON p.id_ejemplar = e.id_ejemplar
+                    JOIN obras o ON e.id_obra = o.id_obra
+                    WHERE p.estado = 'Activo'
+                    ORDER BY p.fecha_devolucion_esperada ASC
+                """
+                cursor.execute(sql)
+                lista = cursor.fetchall()
+            finally:
+                conn.close()
+        return lista
+    
+    @staticmethod
+    def obtener_historial_por_fecha(fecha_inicio, fecha_fin):
+        from src.config.conexion_db import ConexionBD
+        db = ConexionBD()
+        conn = db.conectar()
+        datos = []
+        if conn:
+            try:
+                cursor = conn.cursor()
+                # Trae todo: Libro, Solicitante, Fechas
+                sql = """
+                    SELECT p.id_prestamo, o.titulo, s.nombre_completo, s.telefono, p.fecha_prestamo, p.estado
+                    FROM prestamos p
+                    JOIN ejemplares e ON p.id_ejemplar = e.id_ejemplar
+                    JOIN obras o ON e.id_obra = o.id_obra
+                    JOIN solicitantes s ON p.id_prestatario = s.id_prestatario
+                    WHERE p.fecha_prestamo BETWEEN %s AND %s
+                    ORDER BY p.fecha_prestamo DESC
+                """
+                cursor.execute(sql, (fecha_inicio, fecha_fin))
+                datos = cursor.fetchall()
+            finally:
+                conn.close()
+        return datos

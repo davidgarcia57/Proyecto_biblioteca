@@ -1,7 +1,5 @@
 from src.config.conexion_db import ConexionBD
 from src.view.inventario.frm_nuevo_libro import FrmNuevoLibro
-
-# Importamos los modelos
 from src.model.Editorial import Editorial
 from src.model.Autor import Autor
 from src.model.Obra import Obra
@@ -103,3 +101,17 @@ class CatalogoController:
             if cursor:
                 cursor.close()
             # No cerramos la conexión self.db aquí para mantenerla disponible
+
+    def obtener_info_ejemplar(self, id_ejemplar):
+        # Llama al Modelo Ejemplar
+        return Ejemplar.obtener_info(id_ejemplar)
+
+    def procesar_baja(self, id_ejemplar):
+        # Llama al Modelo Ejemplar
+        exito, mensaje = Ejemplar.dar_de_baja(id_ejemplar)
+        
+        if exito:
+            self.view.mostrar_mensaje(mensaje, False) # Mensaje Verde
+        else:
+            self.view.mostrar_mensaje(mensaje, True)  # Mensaje Rojo (Error)
+        return exito

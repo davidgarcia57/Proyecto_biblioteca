@@ -26,7 +26,21 @@ class FrmNuevoLibro(ctk.CTkFrame):
         # --- HEADER (Título fijo) ---
         self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.header_frame.pack(fill="x", padx=40, pady=(20, 10))
-        
+        # --- BOTÓN VOLVER (NUEVO) ---
+        self.btn_volver = ctk.CTkButton(
+            self.header_frame,
+            text="⬅ Volver",
+            font=("Arial", 14, "bold"),
+            fg_color="transparent",        
+            text_color=self.COLOR_BOTON,  
+            border_width=2,                
+            border_color=self.COLOR_BOTON, 
+            hover_color=self.COLOR_HOVER,  
+            width=100,
+            command=self.controller.volver_al_menu 
+        )
+        self.btn_volver.pack(side="left", padx=(0, 20))
+        #------------------------------------------------------
         self.lbl_titulo_main = ctk.CTkLabel(
             self.header_frame, 
             text="Ficha de Ingreso de Libros ", 
@@ -288,6 +302,14 @@ class FrmNuevoLibro(ctk.CTkFrame):
         self.steps[index].pack(fill="both", expand=True)
         self.lbl_paginacion.configure(text=f"Paso {index + 1} de {len(self.steps)}")
 
+        #NUEVO BLOQUE DE CODIGO
+        if index == 0:
+            # Si estamos en el paso 1, el botón de arriba saca al menú
+            self.btn_volver.configure(text="⬅ Volver al Menú", command=self.controller.volver_al_menu)
+        else:
+            # Si estamos en pasos avanzados, el botón de arriba regresa uno atrás
+            self.btn_volver.configure(text="⬅ Paso Anterior", command=self.anterior_paso)
+        #------------
         if index == 0:
             self.btn_atras.configure(text="Cancelar", fg_color="#D32F2F", hover_color="#B71C1C", state="normal")
         else:

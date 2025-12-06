@@ -111,3 +111,7 @@ class FrmPrestamos(ctk.CTkFrame):
         
     def actualizar_info_usuario(self, texto, valido=True):
         self.lbl_info_usuario.configure(text=texto, text_color="green" if valido else "red")
+
+    #Préstamos Activos e Inactivos
+    
+

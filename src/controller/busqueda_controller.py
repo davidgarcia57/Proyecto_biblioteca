@@ -1,5 +1,5 @@
 from src.config.conexion_db import ConexionBD
-from src.view.inventario.frm_buscar_libro import FmrBuscarLibro
+from src.view.inventario.frm_buscar_libro import FrmBuscarLibro
 from src.model.Obra import Obra
 
 class BusquedaController:
@@ -8,7 +8,7 @@ class BusquedaController:
         self.on_close = on_close
 
         #Instanciamos la vista y le pasamos 'self' (Que es este controlador)
-        self.view = FmrBuscarLibro(view_container, self)
+        self.view = FrmBuscarLibro(view_container, self)
 
         self.db = ConexionBD()
 

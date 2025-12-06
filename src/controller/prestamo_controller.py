@@ -137,3 +137,12 @@ class PrestamoController:
         # Si agregaste un botón 'Buscar' en el popup, conéctalo también:
         if hasattr(popup, 'btn_buscar'):
              popup.btn_buscar.configure(command=ejecutar_busqueda)
+
+    def mostrar_lista_activos(self):
+        # Limpiar contenedor actual
+        for widget in self.view_container.winfo_children():
+            widget.destroy()
+            
+        from src.view.circulacion.frm_lista_prestamos import FrmListaPrestamos
+        self.view = FrmListaPrestamos(self.view_container, self)
+        self.view.pack(fill="both", expand=True)

@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from tkinter import StringVar, ttk # <--- OJO: Necesitamos 'ttk' para la tabla
 
-class FmrBuscarLibro(ctk.CTkFrame):
+class FrmBuscarLibro(ctk.CTkFrame):
     
     # --- PALETA DE COLORES ---
     COLOR_FONDO = "#F3E7D2"
@@ -71,6 +71,13 @@ class FmrBuscarLibro(ctk.CTkFrame):
             border_width=2,
             font=("Arial", 14)
         )
+        self.btn_limpiar = ctk.CTkButton(
+            frame_busqueda, text="X", width=40, height=40,
+            fg_color="#D32F2F", hover_color="#B71C1C",
+            font=("Arial", 14, "bold"),
+            command=self.limpiar_busqueda
+        )
+        self.btn_limpiar.grid(row=0, column=2, padx=5) # Columna 2 (al lado de la lupa)
         self.txt_busqueda.grid(row=0, column=0, padx=(0, 10))
 
         # Botón opcional de momento
@@ -87,6 +94,10 @@ class FmrBuscarLibro(ctk.CTkFrame):
         )
         self.btn_buscar.grid(row=0, column=1)
 
+    def limpiar_busqueda(self):
+            self.txt_busqueda.delete(0, 'end') # Borra visualmente
+            self.controller.realizar_busqueda("") # Fuerza búsqueda vacía (traer todo)
+            
     # --- AQUÍ ESTABA LO QUE FALTABA: LA TABLA ---
     def crear_tabla_resultados(self):
         frame_tabla = ctk.CTkFrame(self, fg_color="transparent")
@@ -107,7 +118,7 @@ class FmrBuscarLibro(ctk.CTkFrame):
                         font=("Georgia", 12, "bold"))
         style.map("Treeview", background=[('selected', self.COLOR_HOVER)])
 
-        columns = ("id", "titulo", "isbn", "autor", "anio", "editorial")
+        columns = ("id", "titulo", "isbn", "autor", "anio", "editorial", "disp")
         self.tree = ttk.Treeview(frame_tabla, columns=columns, show="headings", selectmode="browse")
         
         # Encabezados
@@ -117,6 +128,7 @@ class FmrBuscarLibro(ctk.CTkFrame):
         self.tree.heading("autor", text="Autor")
         self.tree.heading("anio", text="Año")
         self.tree.heading("editorial", text="Editorial")
+        self.tree.heading("disp", text="Disponibilidad")
 
         # Columnas
         self.tree.column("id", width=40, anchor="center")
@@ -125,6 +137,7 @@ class FmrBuscarLibro(ctk.CTkFrame):
         self.tree.column("autor", width=150)
         self.tree.column("anio", width=60, anchor="center")
         self.tree.column("editorial", width=120)
+        self.tree.column("disp", width=120, anchor="center")
 
         # Scrollbar vertical
         scrollbar = ttk.Scrollbar(frame_tabla, orient="vertical", command=self.tree.yview)
@@ -145,18 +158,23 @@ class FmrBuscarLibro(ctk.CTkFrame):
             self.controller.realizar_busqueda(termino)
 
     def mostrar_resultados(self, lista_resultados):
-        # 1. Limpiar tabla
         for item in self.tree.get_children():
             self.tree.delete(item)
             
-        # 2. Llenar tabla
         if lista_resultados:
             for row in lista_resultados:
-                # Ajusta esto al orden exacto del SELECT en Obra.py
-                # (id, titulo, isbn, anio, autor, editorial)
-                valores = (row[0], row[1], row[2], row[4], row[3], row[5])
-                self.tree.insert("", "end", values=valores)
+                # row viene así: (id, titulo, isbn, autor, editorial, disponibles, total)
+                disponibles = row[5]
+                total = row[6]
+                
+                estado_str = f"{disponibles} de {total} Disp."
+                if disponibles == 0:
+                    estado_str = "AGOTADO / PRESTADO"
 
+                valores = (row[0], row[1], row[2], row[3], row[4], row[5], estado_str)
+                
+                # Truco visual: Si está agotado, podríamos pintarlo
+                self.tree.insert("", "end", values=valores)
     def volver_menu(self):
         if self.controller:
             self.controller.volver_al_menu()
