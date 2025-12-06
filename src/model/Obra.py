@@ -115,3 +115,74 @@ class Obra:
                 conn.close()
         
         return resultados
+
+    @staticmethod
+    def obtener_detalle_completo(id_obra):
+        from src.config.conexion_db import ConexionBD
+        db = ConexionBD()
+        conn = db.conectar()
+        detalle = {}
+        
+        if conn:
+            try:
+                cursor = conn.cursor()
+                
+                # --- AGREGAMOS: idioma, edicion, serie ---
+                sql_obra = """
+                    SELECT o.titulo, o.isbn, o.anio_publicacion, o.clasificacion, 
+                           o.descripcion, o.paginas, o.dimensiones,
+                           e.nombre as editorial, a.nombre_completo as autor,
+                           o.idioma, o.edicion, o.serie
+                    FROM obras o
+                    LEFT JOIN editoriales e ON o.id_editorial = e.id_editorial
+                    LEFT JOIN autores_obras ao ON o.id_obra = ao.id_obra
+                    LEFT JOIN autores a ON ao.id_autor = a.id_autor
+                    WHERE o.id_obra = %s
+                """
+                cursor.execute(sql_obra, (id_obra,))
+                row = cursor.fetchone()
+                
+                if row:
+                    detalle['obra'] = {
+                        'id_obra': id_obra, # Importante para guardar después
+                        'titulo': row[0], 
+                        'isbn': row[1], 
+                        'anio': row[2], 
+                        'clasificacion': row[3], 
+                        'descripcion': row[4], 
+                        'paginas': row[5], 
+                        'dimensiones': row[6],
+                        'editorial': row[7], 
+                        'autor': row[8],
+                        # Nuevos campos mapeados por índice (orden del SELECT)
+                        'idioma': row[9],
+                        'edicion': row[10],
+                        'serie': row[11]
+                    }
+
+                # (El resto de la función para 'ejemplares' sigue igual...)
+                sql_ejemplares = "SELECT id_ejemplar, numero_copia, ubicacion_fisica, estado FROM ejemplares WHERE id_obra = %s"
+                cursor.execute(sql_ejemplares, (id_obra,))
+                detalle['ejemplares'] = [{'id': r[0], 'copia': r[1], 'ubicacion': r[2], 'estado': r[3]} for r in cursor.fetchall()]
+                
+            finally:
+                conn.close()
+        return detalle
+
+    def actualizar(self, cursor):
+        """Actualiza los datos básicos de la obra"""
+        sql = """
+            UPDATE obras SET 
+                titulo=%s, isbn=%s, anio_publicacion=%s, clasificacion=%s,
+                paginas=%s, dimensiones=%s, descripcion=%s,
+                edicion=%s, idioma=%s, serie=%s
+            WHERE id_obra=%s
+        """
+        vals = (
+            self.titulo, self.isbn, self.anio_publicacion, self.clasificacion,
+            self.paginas, self.dimensiones, self.descripcion,
+            self.edicion, self.idioma, self.serie, 
+            self.id_obra
+        )
+        cursor.execute(sql, vals)
+        return True

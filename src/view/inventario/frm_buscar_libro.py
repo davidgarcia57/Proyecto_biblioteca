@@ -157,6 +157,7 @@ class FrmBuscarLibro(ctk.CTkFrame):
         
         self.tree.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+        self.tree.bind("<Double-1>", self.evento_doble_clic)
 
     # --- LÓGICA DE BÚSQUEDA ---
     def al_escribir(self, *args):
@@ -204,3 +205,19 @@ class FrmBuscarLibro(ctk.CTkFrame):
     def volver_menu(self):
         if self.controller:
             self.controller.volver_al_menu()
+
+    def evento_doble_clic(self, event):
+        # Obtener el ID del ítem seleccionado en el Treeview
+        item_id = self.tree.selection()
+        
+        if item_id:
+            # Obtener los valores de la fila
+            item = self.tree.item(item_id)
+            valores = item['values']
+            
+            # El ID de la obra es la primera columna (índice 0)
+            id_obra = valores[0]
+            
+            # Llamar al controlador
+            if self.controller:
+                self.controller.abrir_ficha_libro(id_obra)
