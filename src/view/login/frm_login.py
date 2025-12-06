@@ -12,7 +12,7 @@ class FrmLogin(ctk.CTkFrame):
         self.card = ctk.CTkFrame(
             self, 
             width=360, 
-            height=390, # Más alto para mejor espaciado
+            height=400, # Más alto para mejor espaciado
             corner_radius=20, 
             fg_color="#F3E7D2" # Color Beige
         )
@@ -30,7 +30,7 @@ class FrmLogin(ctk.CTkFrame):
         self.lbl_sub = ctk.CTkLabel(
             self.card, 
             text="Tu portal al conocimiento", 
-            font=("Georgia", 13), 
+            font=("Georgia", 16), 
             text_color="#7a5a44" # Marrón claro
         )
         self.lbl_sub.place(relx=0.5, y=55, anchor="n")
@@ -56,16 +56,16 @@ class FrmLogin(ctk.CTkFrame):
             corner_radius=10,
             border_color="#A7744A"
         )
-        self.entry_pass.place(relx=0.5, y=160, anchor="center")
+        self.entry_pass.place(relx=0.5, y=170, anchor="center")
 
         # Mensaje de error (Oculto por defecto)
         self.lbl_error = ctk.CTkLabel(
             self.card, 
             text="", 
             text_color="red", 
-            font=("Arial", 11)
+            font=("Arial", 14)
         )
-        self.lbl_error.place(relx=0.5, y=200, anchor="center")
+        self.lbl_error.place(relx=0.5, y=210, anchor="center")
 
         # Botón (Con el color Bronce/Café)
         self.btn_login = ctk.CTkButton(
@@ -79,7 +79,7 @@ class FrmLogin(ctk.CTkFrame):
             font=("Georgia", 14, "bold"),
             command=self.evento_login
         )
-        self.btn_login.place(relx=0.5, y=245, anchor="center")
+        self.btn_login.place(relx=0.5, y=250, anchor="center")
 
         # Botón para cerrar la aplicación (cierra la ventana principal)
         self.btn_cerrar = ctk.CTkButton(
@@ -90,10 +90,10 @@ class FrmLogin(ctk.CTkFrame):
             corner_radius=10,
             fg_color="#A7744A",
             hover_color="#8c5e3c",
-            font=("Georgia", 12, "bold"),
+            font=("Georgia", 14, "bold"),
             command=self.cerrar_aplicacion
         )
-        self.btn_cerrar.place(relx=0.5, y=305, anchor="center")
+        self.btn_cerrar.place(relx=0.5, y=310, anchor="center")
 
         # Atajos y foco
         self.entry_user.focus()  # foco inicial en usuario
