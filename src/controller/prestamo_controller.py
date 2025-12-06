@@ -1,10 +1,10 @@
 from src.config.conexion_db import ConexionBD
-from src.view.circulacion.popup_busqueda import PopupBusqueda
+from src.view.circulacion.frm_busqueda import FrmBusqueda
 from src.view.circulacion.frm_prestamo import FrmPrestamos
 from src.model.Prestamo import Prestamo
 from src.model.Obra import Obra 
-from src.model.Ejemplar import Ejemplar
-from src.model.Solicitantes import Solicitante
+from src.model.Ejemplar import Ejemplar 
+from src.model.Solicitantes import Solicitante 
 from datetime import datetime, timedelta
 
 class PrestamoController:
@@ -22,7 +22,6 @@ class PrestamoController:
 
     def verificar_libro(self, id_ejemplar):
         res = Ejemplar.verificar_estado(id_ejemplar)
-        
         if res:
             titulo, estado = res
             if estado == 'Disponible':
@@ -36,9 +35,7 @@ class PrestamoController:
             return False
 
     def verificar_solicitante(self, id_solicitante):
-        # MVC CORRECTO: Delegamos la consulta al Modelo
         nombre = Solicitante.obtener_nombre(id_solicitante)
-
         if nombre:
             self.view.actualizar_info_usuario(f"✔ {nombre}", True)
             return True
@@ -58,10 +55,16 @@ class PrestamoController:
         conn = self.db.conectar()
         if conn:
             try:
-                # IMPORTANTE: Iniciar Transacción
                 conn.start_transaction()
                 
-                # Crear objeto préstamo
+                # Validar límite de préstamos (Opcional, según tu regla de negocio anterior)
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM prestamos WHERE id_prestatario = %s AND estado = 'Activo'", (id_solicitante,))
+                if cursor.fetchone()[0] >= 3:
+                    self.view.mostrar_mensaje("El lector ya tiene 3 préstamos activos.", True)
+                    conn.rollback()
+                    return
+
                 nuevo_prestamo = Prestamo(
                     id_prestatario=id_solicitante,
                     id_usuario_sistema=self.usuario_sistema.id_usuario,
@@ -69,48 +72,62 @@ class PrestamoController:
                     fecha_devolucion_esperada=fecha_dev
                 )
                 
-                # El modelo se encarga del INSERT
                 id_generado = nuevo_prestamo.guardar(conn)
+                conn.commit() 
                 
-                conn.commit() # Confirmar cambios
                 self.view.mostrar_mensaje(f"Préstamo #{id_generado} registrado con éxito.")
-                
-                # Limpiar campos
                 self.view.txt_id_libro.delete(0, 'end')
                 self.view.lbl_info_libro.configure(text="[Esperando libro...]", text_color="gray")
                 
             except Exception as e:
-                conn.rollback() # Deshacer si hay error
+                conn.rollback()
                 self.view.mostrar_mensaje(f"Error al prestar: {e}", True)
             finally:
                 conn.close()
 
-    def abrir_popup_libros(self):
-        """
-        Abre el popup de búsqueda y maneja la selección del libro.
-        Respeta MVC delegando la búsqueda al Modelo (Obra).
-        """
-        def al_seleccionar_libro(id_ejemplar):
+    # --- LÓGICA DE BÚSQUEDA DE LIBROS ---
+    def abrir_busqueda_libros(self):
+        def al_seleccionar(id_sel):
             self.view.txt_id_libro.delete(0, 'end')
-            self.view.txt_id_libro.insert(0, str(id_ejemplar))
-            self.verificar_libro(id_ejemplar) 
+            self.view.txt_id_libro.insert(0, str(id_sel))
+            self.verificar_libro(id_sel) 
 
-        popup = PopupBusqueda(self.view, al_seleccionar_libro, tipo="libro")
+        # Instanciamos la nueva FrmBusqueda
+        self.popup = FrmBusqueda(self.view, al_seleccionar, tipo="libro")
         
-        def ejecutar_busqueda(event=None):
-            termino = popup.entry_busqueda.get()
-            resultados = Obra.buscar_disponibles(termino)
-            popup.cargar_datos(resultados)
+        # Definimos la lógica de búsqueda
+        def buscar_bd(event=None):
+            termino = self.popup.entry_busqueda.get()
+            datos = Obra.buscar_disponibles(termino)
+            self.popup.cargar_datos(datos)
 
-        popup.entry_busqueda.bind("<Return>", ejecutar_busqueda)
+        # Conectamos el evento del popup
+        self.popup.ejecutar_busqueda_evento = buscar_bd
+        # Re-bind por si acaso (aunque la vista ya lo hace, necesitamos que apunte a ESTA funcion local)
+        self.popup.entry_busqueda.bind("<Return>", buscar_bd)
+        # Hack para asignar comando al botón si no se pasó en el init
+        for widget in self.popup.winfo_children(): # Buscamos el frame superior
+            for child in widget.winfo_children():
+                if isinstance(child, type(self.popup.entry_busqueda.master.winfo_children()[1])): # Si es boton
+                     child.configure(command=buscar_bd)
+
+    # --- LÓGICA DE BÚSQUEDA DE LECTORES (NUEVO) ---
+    def abrir_busqueda_lectores(self):
+        def al_seleccionar(id_sel):
+            self.view.txt_id_usuario.delete(0, 'end')
+            self.view.txt_id_usuario.insert(0, str(id_sel))
+            self.verificar_solicitante(id_sel)
+
+        self.popup_lec = FrmBusqueda(self.view, al_seleccionar, tipo="lector")
         
-        if hasattr(popup, 'btn_buscar'):
-             popup.btn_buscar.configure(command=ejecutar_busqueda)
+        def buscar_bd(event=None):
+            termino = self.popup_lec.entry_busqueda.get()
+            datos = Solicitante.buscar_por_termino(termino) # Método nuevo en modelo
+            self.popup_lec.cargar_datos(datos)
 
-    def mostrar_lista_activos(self):
-        for widget in self.view_container.winfo_children():
-            widget.destroy()
-            
-        from src.view.circulacion.frm_lista_prestamos import FrmListaPrestamos
-        self.view = FrmListaPrestamos(self.view_container, self)
-        self.view.pack(fill="both", expand=True)
+        self.popup_lec.ejecutar_busqueda_evento = buscar_bd
+        self.popup_lec.entry_busqueda.bind("<Return>", buscar_bd)
+        
+        # Asignar comando al botón manualmente (forma robusta)
+        # Nota: La forma más limpia es pasar el comando al constructor de FrmBusqueda si se modifica,
+        # pero aquí usamos el atributo inyectado.

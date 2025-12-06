@@ -46,7 +46,6 @@ class Solicitante:
     
     @staticmethod
     def obtener_todos():
-        """Devuelve una list de todos los solicitantes para la tabla"""
         db = ConexionBD()
         conn = db.conectar()
         lista = []
@@ -56,7 +55,6 @@ class Solicitante:
                 cursor.execute("SELECT * FROM solicitantes ORDER BY nombre_completo ASC")
                 datos = cursor.fetchall()
                 for fila in datos:
-                    # Fila: (id, nombre, tel, email, dir, fecha)
                     lista.append(Solicitante(fila[1], fila[2], fila[3], fila[4], fila[5], fila[0]))
             finally:
                 conn.close()
@@ -79,13 +77,8 @@ class Solicitante:
                 conn.close()
         return False
 
-    # --- NUEVO MÉTODO PARA VALIDACIÓN EN PRÉSTAMOS ---
     @staticmethod
     def obtener_nombre(id_prestatario):
-        """
-        Retorna el nombre del solicitante si existe, o None.
-        Usado por PrestamoController.
-        """
         db = ConexionBD()
         conn = db.conectar()
         nombre = None
@@ -97,8 +90,29 @@ class Solicitante:
                 res = cursor.fetchone()
                 if res:
                     nombre = res[0]
-            except Exception as e:
-                print(f"Error al buscar solicitante: {e}")
             finally:
                 conn.close()
         return nombre
+
+    # --- NUEVO MÉTODO PARA BÚSQUEDA ---
+    @staticmethod
+    def buscar_por_termino(termino):
+        """Busca solicitantes por nombre o ID para el popup"""
+        db = ConexionBD()
+        conn = db.conectar()
+        resultados = []
+        if conn:
+            try:
+                cursor = conn.cursor()
+                sql = """
+                    SELECT id_prestatario, nombre_completo, telefono 
+                    FROM solicitantes 
+                    WHERE nombre_completo LIKE %s OR id_prestatario LIKE %s
+                    LIMIT 20
+                """
+                like = f"%{termino}%"
+                cursor.execute(sql, (like, like))
+                resultados = cursor.fetchall()
+            finally:
+                conn.close()
+        return resultados
