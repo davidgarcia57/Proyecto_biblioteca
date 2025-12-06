@@ -31,29 +31,29 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         self.lbl_logo.pack(pady=(30, 20), padx=20)
 
         # BOTONES DEL MENÚ
-        self.crear_boton_menu("🔎 Consultar Libro", self.controller.mostrar_busqueda)
-        self.crear_boton_menu("➕ Agregar Libro", self.controller.mostrar_catalogo)
-        self.crear_boton_menu("🗑️Quitar Libro", self.controller.mostrar_baja_libros)
-        self.crear_boton_menu("📑 Préstamos", self.controller.mostrar_prestamos)
-        self.crear_boton_menu("👥 Lectores", self.controller.mostrar_solicitantes)
-        self.crear_boton_menu("📊 Reportes", self.controller.mostrar_reportes_avanzados)
-        self.crear_boton_menu("🚶 Registro Visitas", self.controller.mostrar_registro_visitas)
+        self.crear_boton_menu("Consultar Libro", self.controller.mostrar_busqueda)
+        self.crear_boton_menu("Agregar Libro", self.controller.mostrar_catalogo)
+        self.crear_boton_menu("Quitar Libro", self.controller.mostrar_baja_libros)
+        self.crear_boton_menu("Préstamos", self.controller.mostrar_prestamos)
+        self.crear_boton_menu("Lectores", self.controller.mostrar_solicitantes)
+        self.crear_boton_menu("Reportes", self.controller.mostrar_reportes_avanzados)
+        self.crear_boton_menu("Registro Visitas", self.controller.mostrar_registro_visitas)
 
         # OPCIONES DE ADMIN
         if rol_usuario == "Admin":
-            # Aquí está el cambio solicitado: Apartado de Configuración
+            #Apartado de Configuración
             self.crear_boton_menu("⚙️ Configuración", self.controller.mostrar_usuarios_sistema) 
 
         #BOTÓN DE AVISO DE PRIVACIDAD
         self.btn_privacidad = ctk.CTkButton(
             self.sidebar_frame,
-            text="❓",
+            text="AVISO DE PRIVASIDAD",
             width=40,
             height=40,
             corner_radius=20,
             fg_color="transparent",
             hover_color=self.COLOR_BOTON_MENU,
-            font=("Arial", 24),
+            font=("Arial", 18),
             command=self.abrir_privacidad
         )
         self.btn_privacidad.pack(side="bottom", anchor="sw", padx=20, pady=20)
