@@ -6,6 +6,7 @@ from src.model.Obra import Obra
 from src.model.Ejemplar import Ejemplar 
 from src.model.Solicitantes import Solicitante 
 from datetime import datetime, timedelta
+from tkinter import messagebox
 
 class PrestamoController:
     def __init__(self, view_container, usuario_sistema, on_close=None):
@@ -13,6 +14,8 @@ class PrestamoController:
         self.usuario_sistema = usuario_sistema 
         self.on_close = on_close
         
+        # NOTA: Por defecto cargamos la vista de Crear Préstamo.
+        # Si el Router nos llama para "Lista de Préstamos", él reemplaza la vista manualmente.
         self.view = FrmPrestamos(view_container, self)
         self.db = ConexionBD()
 
@@ -57,7 +60,7 @@ class PrestamoController:
             try:
                 conn.start_transaction()
                 
-                # Validar límite de préstamos (Opcional, según tu regla de negocio anterior)
+                # Validar límite de préstamos
                 cursor = conn.cursor()
                 cursor.execute("SELECT COUNT(*) FROM prestamos WHERE id_prestatario = %s AND estado = 'Activo'", (id_solicitante,))
                 if cursor.fetchone()[0] >= 3:
@@ -85,6 +88,28 @@ class PrestamoController:
             finally:
                 conn.close()
 
+    # --- NUEVO: Procesar Devolución ---
+    def procesar_devolucion(self, id_prestamo, id_ejemplar):
+        conn = self.db.conectar()
+        if conn:
+            try:
+                conn.start_transaction()
+                
+                # Llamamos al método estático del modelo pasando la conexión
+                Prestamo.finalizar_prestamo(conn, id_prestamo, id_ejemplar)
+                
+                conn.commit()
+                messagebox.showinfo("Éxito", "Libro devuelto correctamente.\nAhora está Disponible.")
+                
+                # Refrescamos la tabla
+                self.view.cargar_datos()
+                
+            except Exception as e:
+                conn.rollback()
+                messagebox.showerror("Error", f"No se pudo procesar la devolución: {e}")
+            finally:
+                conn.close()
+
     # --- LÓGICA DE BÚSQUEDA DE LIBROS ---
     def abrir_busqueda_libros(self):
         def al_seleccionar(id_sel):
@@ -92,26 +117,22 @@ class PrestamoController:
             self.view.txt_id_libro.insert(0, str(id_sel))
             self.verificar_libro(id_sel) 
 
-        # Instanciamos la nueva FrmBusqueda
         self.popup = FrmBusqueda(self.view, al_seleccionar, tipo="libro")
         
-        # Definimos la lógica de búsqueda
         def buscar_bd(event=None):
             termino = self.popup.entry_busqueda.get()
             datos = Obra.buscar_disponibles(termino)
             self.popup.cargar_datos(datos)
 
-        # Conectamos el evento del popup
         self.popup.ejecutar_busqueda_evento = buscar_bd
-        # Re-bind por si acaso (aunque la vista ya lo hace, necesitamos que apunte a ESTA funcion local)
         self.popup.entry_busqueda.bind("<Return>", buscar_bd)
-        # Hack para asignar comando al botón si no se pasó en el init
-        for widget in self.popup.winfo_children(): # Buscamos el frame superior
+        
+        for widget in self.popup.winfo_children(): 
             for child in widget.winfo_children():
-                if isinstance(child, type(self.popup.entry_busqueda.master.winfo_children()[1])): # Si es boton
+                if isinstance(child, type(self.popup.entry_busqueda.master.winfo_children()[1])): 
                      child.configure(command=buscar_bd)
 
-    # --- LÓGICA DE BÚSQUEDA DE LECTORES (NUEVO) ---
+    # --- LÓGICA DE BÚSQUEDA DE LECTORES ---
     def abrir_busqueda_lectores(self):
         def al_seleccionar(id_sel):
             self.view.txt_id_usuario.delete(0, 'end')
@@ -122,12 +143,13 @@ class PrestamoController:
         
         def buscar_bd(event=None):
             termino = self.popup_lec.entry_busqueda.get()
-            datos = Solicitante.buscar_por_termino(termino) # Método nuevo en modelo
+            datos = Solicitante.buscar_por_termino(termino)
             self.popup_lec.cargar_datos(datos)
 
         self.popup_lec.ejecutar_busqueda_evento = buscar_bd
         self.popup_lec.entry_busqueda.bind("<Return>", buscar_bd)
         
-        # Asignar comando al botón manualmente (forma robusta)
-        # Nota: La forma más limpia es pasar el comando al constructor de FrmBusqueda si se modifica,
-        # pero aquí usamos el atributo inyectado.
+        for widget in self.popup_lec.winfo_children(): 
+            for child in widget.winfo_children():
+                if isinstance(child, type(self.popup_lec.entry_busqueda.master.winfo_children()[1])): 
+                     child.configure(command=buscar_bd)

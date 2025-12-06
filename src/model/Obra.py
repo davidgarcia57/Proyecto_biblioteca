@@ -51,7 +51,6 @@ class Obra:
         self.id_obra = cursor.lastrowid
         return self.id_obra
 
-    # El método relacionar_autor se queda igual
     def relacionar_autor(self, cursor, id_autor, rol="Autor Principal"):
         sql = "INSERT INTO autores_obras (id_obra, id_autor, rol) VALUES (%s, %s, %s)"
         cursor.execute(sql, (self.id_obra, id_autor, rol))
@@ -59,6 +58,7 @@ class Obra:
     @staticmethod
     def buscar_por_termino(cursor, termino):
         termino_like = f"%{termino}%"
+        # OJO AL ORDEN DE ESTE SELECT, debe coincidir con la vista
         sql = """
             SELECT 
                 o.id_obra, 
@@ -73,11 +73,12 @@ class Obra:
             LEFT JOIN autores_obras ao ON o.id_obra = ao.id_obra
             LEFT JOIN autores a ON ao.id_autor = a.id_autor
             LEFT JOIN editoriales e ON o.id_editorial = e.id_editorial
-            JOIN ejemplares ejm ON o.id_obra = ejm.id_obra
             WHERE (o.titulo LIKE %s OR o.isbn LIKE %s OR a.nombre_completo LIKE %s)
-            AND ejm.estado != 'Baja'
             GROUP BY o.id_obra
         """
+        # Nota: Quité "AND ejm.estado != 'Baja'" del WHERE principal porque 
+        # queremos ver el libro aunque todos sus ejemplares estén de baja (aparecerá 0 de 0).
+        
         cursor.execute(sql, (termino_like, termino_like, termino_like))
         return cursor.fetchall()
 
@@ -87,6 +88,7 @@ class Obra:
         Busca ejemplares que estén DISPONIBLES para préstamo.
         Retorna una lista de tuplas: (id_ejemplar, titulo, autor)
         """
+        from src.config.conexion_db import ConexionBD # Import local para evitar ciclos
         db = ConexionBD()
         conn = db.conectar()
         resultados = []

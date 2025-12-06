@@ -7,23 +7,26 @@ class BusquedaController:
         self.view_container = view_container
         self.on_close = on_close
 
-        #Instanciamos la vista y le pasamos 'self' (Que es este controlador)
+        # Instanciamos la vista y le pasamos 'self'
         self.view = FrmBuscarLibro(view_container, self)
 
         self.db = ConexionBD()
+        
+        # Carga inicial de datos (opcional, para que no salga vacía al abrir)
+        self.realizar_busqueda("")
 
     def realizar_busqueda(self, termino):
-        if not termino:
-            return
+        # NOTA: Permitimos termino vacío ("") para listar todo
         
         conn = self.db.conectar()
         if conn:
             try:
                 cursor = conn.cursor()
-                #Llamamos al método estático
+                # Llamamos al método estático del Modelo
+                # Si termino es "", el modelo hará LIKE '%%' trayendo todo.
                 resultados = Obra.buscar_por_termino(cursor, termino)
 
-                #Enviamos los datos a la vistaa para que los pinte
+                # Enviamos los datos a la vista para que limpie y pinte
                 self.view.mostrar_resultados(resultados)
 
             except Exception as e:

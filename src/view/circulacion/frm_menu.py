@@ -41,8 +41,12 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         self.crear_boton_menu(" Consultar Libro", self.controller.mostrar_busqueda)
         self.crear_boton_menu(" Agregar Libro", self.controller.mostrar_catalogo)
         self.crear_boton_menu(" Quitar Libro", self.controller.mostrar_baja_libros)
+        
+        # --- SECCIÓN CIRCULACIÓN ---
         self.crear_boton_menu(" Préstamos", self.controller.mostrar_prestamos)
+        self.crear_boton_menu(" Devoluciones", self.controller.mostrar_lista_prestamos) # <--- ¡NUEVO BOTÓN!
         self.crear_boton_menu(" Lectores", self.controller.mostrar_solicitantes)
+        
         self.crear_boton_menu(" Reportes", self.controller.mostrar_reportes_avanzados)
         self.crear_boton_menu(" Visitas", self.controller.mostrar_registro_visitas)
 
@@ -107,18 +111,18 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         self.crear_tarjeta_info(self.dashboard_frame, "Lectores Inscritos", str(datos["usuarios"]), "👥", 0, 2)
 
         # --- ACCESOS RÁPIDOS (Fila 1) ---
-        # Esto rellena el espacio vacío y da utilidad
         lbl_rapidos = ctk.CTkLabel(self.dashboard_frame, text="Accesos Rápidos", 
                                    font=("Arial", 18, "bold"), text_color=self.COLOR_TEXTO)
         lbl_rapidos.grid(row=1, column=0, sticky="w", pady=(40, 10), padx=10)
 
         frame_acciones = ctk.CTkFrame(self.dashboard_frame, fg_color="transparent")
         frame_acciones.grid(row=2, column=0, columnspan=3, sticky="ew")
-        frame_acciones.columnconfigure((0, 1, 2), weight=1)
+        frame_acciones.columnconfigure((0, 1, 2, 3), weight=1) # 4 columnas ahora
 
         self.crear_boton_rapido(frame_acciones, "Nueva Visita", "🚶", self.controller.mostrar_registro_visitas, 0)
         self.crear_boton_rapido(frame_acciones, "Prestar Libro", "📖", self.controller.mostrar_prestamos, 1)
-        self.crear_boton_rapido(frame_acciones, "Buscar Libro", "🔍", self.controller.mostrar_busqueda, 2)
+        self.crear_boton_rapido(frame_acciones, "Devolver", "✅", self.controller.mostrar_lista_prestamos, 2) # <--- NUEVO
+        self.crear_boton_rapido(frame_acciones, "Buscar Libro", "🔍", self.controller.mostrar_busqueda, 3)
 
 
     # =================================================
@@ -133,15 +137,12 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         btn.pack(fill="x", padx=10, pady=2)
 
     def crear_tarjeta_info(self, parent, titulo, dato, icono, fila, col):
-        # Tarjeta con borde superior de color
         card = ctk.CTkFrame(parent, fg_color="white", corner_radius=15, border_color="#E0E0E0", border_width=2)
         card.grid(row=fila, column=col, padx=15, pady=10, sticky="nsew")
         
-        # Decoración superior (Barra de color)
         bar = ctk.CTkFrame(card, height=10, fg_color=self.COLOR_FONDO_MENU, corner_radius=0)
         bar.pack(fill="x", side="top")
 
-        # Contenido
         inner = ctk.CTkFrame(card, fg_color="transparent")
         inner.pack(expand=True, pady=20)
         
@@ -182,7 +183,6 @@ class FrmMenuPrincipal(ctk.CTkFrame):
     def confirmar_salida(self):
         respuesta = messagebox.askyesno("Confirmar", "¿Está seguro que desea cerrar su sesión?")
         if respuesta:
-            # Si dice que SÍ, llamamos al método del controlador/router
             if hasattr(self.controller, 'cerrar_sesion'):
                 self.controller.cerrar_sesion()
             else:

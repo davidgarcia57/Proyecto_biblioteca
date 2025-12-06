@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from src.config.conexion_db import ConexionBD
 
 class Prestamo:
     def __init__(self, id_prestatario, id_usuario_sistema, id_ejemplar, 
@@ -58,16 +59,15 @@ class Prestamo:
 
     @staticmethod
     def obtener_activos():
-        from src.config.conexion_db import ConexionBD
         db = ConexionBD()
         conn = db.conectar()
         lista = []
         if conn:
             try:
                 cursor = conn.cursor()
-                # Unimos 4 tablas: Prestamo -> Solicitante -> Ejemplar -> Obra
+                # OJO: Agregamos p.id_ejemplar al final
                 sql = """
-                    SELECT p.id_prestamo, s.nombre_completo, o.titulo, p.fecha_devolucion_esperada
+                    SELECT p.id_prestamo, s.nombre_completo, o.titulo, p.fecha_devolucion_esperada, p.id_ejemplar
                     FROM prestamos p
                     JOIN solicitantes s ON p.id_prestatario = s.id_prestatario
                     JOIN ejemplares e ON p.id_ejemplar = e.id_ejemplar
@@ -83,7 +83,6 @@ class Prestamo:
     
     @staticmethod
     def obtener_historial_por_fecha(fecha_inicio, fecha_fin):
-        from src.config.conexion_db import ConexionBD
         db = ConexionBD()
         conn = db.conectar()
         datos = []
