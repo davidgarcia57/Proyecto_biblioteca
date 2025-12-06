@@ -24,7 +24,6 @@ class Solicitante:
                         UPDATE solicitantes SET nombre_completo=%s, telefono=%s, email=%s, direccion=%s 
                         WHERE id_prestatario=%s
                     """
-                    # CORRECCIÓN: Fíjate en el doble paréntesis ((...))
                     valores = (self.nombre_completo, self.telefono, self.email, self.direccion, self.id_prestatario)
                     cursor.execute(sql, valores)
                 else:
@@ -33,7 +32,6 @@ class Solicitante:
                         INSERT INTO solicitantes (nombre_completo, telefono, email, direccion, fecha_registro) 
                         VALUES (%s, %s, %s, %s, %s)
                     """
-                    # CORRECCIÓN: Fíjate en el doble paréntesis ((...))
                     valores = (self.nombre_completo, self.telefono, self.email, self.direccion, self.fecha_registro)
                     cursor.execute(sql, valores)
                 
@@ -80,3 +78,27 @@ class Solicitante:
             finally:
                 conn.close()
         return False
+
+    # --- NUEVO MÉTODO PARA VALIDACIÓN EN PRÉSTAMOS ---
+    @staticmethod
+    def obtener_nombre(id_prestatario):
+        """
+        Retorna el nombre del solicitante si existe, o None.
+        Usado por PrestamoController.
+        """
+        db = ConexionBD()
+        conn = db.conectar()
+        nombre = None
+        if conn:
+            try:
+                cursor = conn.cursor()
+                sql = "SELECT nombre_completo FROM solicitantes WHERE id_prestatario = %s"
+                cursor.execute(sql, (id_prestatario,))
+                res = cursor.fetchone()
+                if res:
+                    nombre = res[0]
+            except Exception as e:
+                print(f"Error al buscar solicitante: {e}")
+            finally:
+                conn.close()
+        return nombre

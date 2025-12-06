@@ -11,7 +11,6 @@ class App(ctk.CTk):
         
         self.title("Sistema de Biblioteca - Congreso de Durango")
         
-        # --- CORRECCIÓN AQUÍ ---
         # En lugar de self.state("zoomed"), usamos un retraso de 0ms
         # para asegurar que la ventana ya existe antes de maximizarla.
         self.after(0, lambda: self.state("zoomed"))

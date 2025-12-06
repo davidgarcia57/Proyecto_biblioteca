@@ -76,14 +76,13 @@ class Ejemplar:
     
     @staticmethod
     def obtener_por_fecha(fecha_inicio, fecha_fin):
-        from src.config.conexion_db import ConexionBD
+        from src.config.conexion_db import ConexionBD # Import local para evitar ciclos
         db = ConexionBD()
         conn = db.conectar()
         datos = []
         if conn:
             try:
                 cursor = conn.cursor()
-                # CORREGIDO: Usamos e.id_ejemplar en lugar de e.no_adquisicion
                 sql = """
                     SELECT e.id_ejemplar, o.titulo, o.isbn, e.fecha_adquisicion
                     FROM ejemplares e
@@ -107,7 +106,6 @@ class Ejemplar:
         if conn:
             try:
                 cursor = conn.cursor()
-                # Seleccionamos ID, Título y la Fecha (si tienes fecha de baja, úsala, si no, usamos adquisición)
                 sql = """
                     SELECT e.id_ejemplar, o.titulo, o.isbn, e.ubicacion_fisica
                     FROM ejemplares e
@@ -120,3 +118,30 @@ class Ejemplar:
             finally:
                 conn.close()
         return datos
+
+    # --- MÉTODO PARA VALIDACIÓN EN PRÉSTAMOS ---
+    @staticmethod
+    def verificar_estado(id_ejemplar):
+        """
+        Retorna (titulo, estado) si existe, o None.
+        Usado por PrestamoController para validar antes de prestar.
+        """
+        db = ConexionBD()
+        conn = db.conectar()
+        resultado = None
+        if conn:
+            try:
+                cursor = conn.cursor()
+                sql = """
+                    SELECT o.titulo, e.estado 
+                    FROM ejemplares e 
+                    JOIN obras o ON e.id_obra = o.id_obra 
+                    WHERE e.id_ejemplar = %s
+                """
+                cursor.execute(sql, (id_ejemplar,))
+                resultado = cursor.fetchone()
+            except Exception as e:
+                print(f"Error al verificar ejemplar: {e}")
+            finally:
+                conn.close()
+        return resultado
