@@ -1,18 +1,18 @@
-import mysql.connector
-from mysql.connector import Error
+import pymysql
+from pymysql import Error
 
 class ConexionBD:
     def __init__(self):
         self.host = "localhost"
         self.user = "root"
         self.password = ""
-        self.database = "biblioteca_normalizada" # Aqui el nombre de la BD
+        self.database = "biblioteca_normalizada"
         self.connection = None
-        use_pure=True
 
     def conectar(self):
         try:
-            self.connection = mysql.connector.connect(
+            # Usamos PyMySQL para conectar
+            self.connection = pymysql.connect(
                 host=self.host,
                 user=self.user,
                 password=self.password,
@@ -24,5 +24,6 @@ class ConexionBD:
             return None
         
     def cerrar(self):
-        if self.connection and self.connection.is_connected():
+        # PyMySQL usa .open en lugar de .is_connected()
+        if self.connection and self.connection.open:
             self.connection.close()
