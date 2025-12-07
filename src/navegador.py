@@ -104,7 +104,7 @@ class Router:
 
     def mostrar_busqueda(self):
         self.limpiar_contenedor()
-        controller = BusquedaController(self.container, on_close=self.mostrar_menu_principal)
+        controller = BusquedaController(self.container, on_close=self.mostrar_menu_principal, on_add_book=self.mostrar_catalogo)
         controller.view.pack(fill="both", expand=True)
 
     def mostrar_prestamos(self):

@@ -6,9 +6,10 @@ from src.model.Ejemplar import Ejemplar
 from tkinter import messagebox
 
 class BusquedaController:
-    def __init__(self, view_container, on_close=None):
+    def __init__(self, view_container, on_close=None, on_add_book=None):
         self.view_container = view_container
         self.on_close = on_close
+        self.on_add_book = on_add_book
 
         # Instanciamos la vista y le pasamos 'self'
         self.view = FrmBuscarLibro(view_container, self)
@@ -32,6 +33,11 @@ class BusquedaController:
     def volver_al_menu(self):
         if self.on_close:
             self.on_close()
+    
+    def ir_a_agregar_libro(self):
+        """Redirige a la pantalla de agregar libro usando el callback del Router"""
+        if self.on_add_book:
+            self.on_add_book()
 
     # =========================================================================
     #  NUEVA LÓGICA: FICHA TÉCNICA Y GESTIÓN
