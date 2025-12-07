@@ -8,6 +8,7 @@ class ConexionBD:
         self.password = ""
         self.database = "biblioteca_normalizada" # Aqui el nombre de la BD
         self.connection = None
+        use_pure=True
 
     def conectar(self):
         try:
