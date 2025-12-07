@@ -100,8 +100,8 @@ class PopupFicha(ctk.CTkToplevel):
         frm_baja = ctk.CTkFrame(frm_tabla, fg_color="#F3E7D2", width=150)
         frm_baja.pack(side="right", fill="y", padx=(10,0))
         frm_baja.pack_propagate(False)
-        ctk.CTkLabel(frm_baja, text="⚠️ Zona de Baja", text_color="#D32F2F", font=("Arial", 12, "bold")).pack(pady=10)
-        ctk.CTkButton(frm_baja, text="Dar de Baja\nSeleccionado", fg_color="#D32F2F", hover_color="#B71C1C", height=50, command=self.evento_baja).pack(pady=10, padx=10)
+        ctk.CTkLabel(frm_baja, text="Zona de Baja", text_color="#D32F2F", font=("Arial", 12, "bold")).pack(pady=10)
+        ctk.CTkButton(frm_baja, text="Quitar libro\nSeleccionado", fg_color="#D32F2F", hover_color="#B71C1C", height=50, command=self.evento_baja).pack(pady=10, padx=10)
 
     def toggle_edicion(self):
         self.editando = not self.editando
@@ -139,7 +139,7 @@ class PopupFicha(ctk.CTkToplevel):
             'edicion': self.entries['edicion'].get(),
             'paginas': self.entries['paginas'].get(),
             'dimensiones': self.entries['dimensiones'].get(),
-            'serie': self.entries['serie'].get(), # Asegurarnos que serie se recoge
+            'serie': self.entries['serie'].get(),
             'descripcion': self.txt_desc.get("0.0", "end").strip()
         }
         
