@@ -42,21 +42,16 @@ class FrmUsuariosSistema(ctk.CTkFrame):
         self.p_form.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
         self.p_form.grid_propagate(False) 
 
-        # --- AVATAR / LOGO (Manejo inteligente de espacio) ---
+        # --- AVATAR / LOGO ---
         frame_img = ctk.CTkFrame(self.p_form, fg_color="transparent")
         frame_img.pack(pady=(20, 10))
 
         try:
-            # Puedes usar una imagen genérica de usuario "user_icon.png"
             image_path = "user_icon.png" 
             if os.path.exists(image_path):
                 img_pil = Image.open(image_path)
                 img_ctk = ctk.CTkImage(light_image=img_pil, size=(90, 90))
                 ctk.CTkLabel(frame_img, image=img_ctk, text="").pack()
-            else:
-                # Si no hay imagen, un emoji grande como placeholder temporal queda bien
-                # ctk.CTkLabel(frame_img, text="👤", font=("Arial", 60)).pack()
-                pass
         except Exception:
             pass
 
@@ -135,68 +130,53 @@ class FrmUsuariosSistema(ctk.CTkFrame):
         self.tree.bind("<<TreeviewSelect>>", self.seleccionar_fila)
 
     def crear_input(self, ph, is_pass=False):
-        # Etiqueta pequeña arriba
         ctk.CTkLabel(self.p_form, text=ph, anchor="w", font=("Arial", 11, "bold"), text_color="gray").pack(fill="x", padx=25, pady=(5,0))
-        
         show_char = "*" if is_pass else ""
         e = ctk.CTkEntry(self.p_form, placeholder_text=ph, show=show_char, height=35, border_color="#A7744A")
         e.pack(fill="x", padx=20, pady=2)
         return e
 
-    # --- LÓGICA ---
+    # --- LÓGICA / INTERACCIÓN ---
+
+    def limpiar_tabla(self):
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+    def agregar_fila(self, *values):
+        self.tree.insert("", "end", values=values)
 
     def limpiar_formulario(self):
         self.id_actual = None
         self.entry_nombre.delete(0, 'end')
         self.entry_user.delete(0, 'end')
         self.entry_pass.delete(0, 'end')
-        self.entry_pass_conf.delete(0, 'end') # Limpiar confirmación
+        self.entry_pass_conf.delete(0, 'end') 
         self.combo_rol.set("Bibliotecario")
         self.chk_activo.select()
         self.btn_guardar.configure(text="Guardar Usuario")
-        self.tree.selection_remove(self.tree.selection())
+        if self.tree.selection():
+            self.tree.selection_remove(self.tree.selection())
 
     def evento_guardar(self):
-        # 1. Obtener valores
-        p1 = self.entry_pass.get()
-        p2 = self.entry_pass_conf.get()
-        
-        # 2. Validar contraseñas
-        # Si es nuevo usuario (id_actual is None), la contraseña es obligatoria
-        if self.id_actual is None and not p1:
-             messagebox.showerror("Error", "Para un usuario nuevo, la contraseña es obligatoria.")
-             return
-
-        # Si escribieron algo en contraseña, debe coincidir con la confirmación
-        if p1 or p2: 
-            if p1 != p2:
-                messagebox.showerror("Error de Seguridad", "Las contraseñas no coinciden.\nPor favor verifíquelas.")
-                return
-
+        # Recolección de datos pura, sin validación de negocio
         datos = {
             "nombre": self.entry_nombre.get(),
             "usuario": self.entry_user.get(),
-            "password": p1, # El controller decidirá si actualiza o no (si está vacío)
+            "password": self.entry_pass.get(),
+            "confirm_pass": self.entry_pass_conf.get(), # Enviamos confirmación al controlador
             "rol": self.combo_rol.get(),
-            "activo": 1 if self.chk_activo.get() == 1 else 0 # Asegurar valor numérico o booleano según tu DB
+            "activo": 1 if self.chk_activo.get() == 1 else 0
         }
-        
-        # Validar campos básicos
-        if not datos["nombre"] or not datos["usuario"]:
-             messagebox.showwarning("Faltan Datos", "Nombre y Usuario son obligatorios.")
-             return
-
+        # Delegamos toda la responsabilidad al controlador
         self.controller.guardar_usuario(datos, self.id_actual)
-        self.limpiar_formulario()
 
     def evento_eliminar(self):
         if not self.id_actual:
             messagebox.showwarning("Aviso", "Seleccione un usuario de la tabla para eliminar.")
             return
         
-        if messagebox.askyesno("Confirmar Eliminación", "⚠️ ¿Seguro que desea eliminar este usuario?\nEsta acción no se puede deshacer."):
+        if messagebox.askyesno("Confirmar Eliminación", "⚠️ ¿Seguro que desea eliminar este usuario?"):
             self.controller.eliminar_usuario(self.id_actual)
-            self.limpiar_formulario()
 
     def seleccionar_fila(self, event):
         item = self.tree.selection()
@@ -207,17 +187,12 @@ class FrmUsuariosSistema(ctk.CTkFrame):
             
             self.entry_nombre.insert(0, vals[1])
             self.entry_user.insert(0, vals[2])
-            
-            # NO llenamos la contraseña por seguridad.
-            # Solo llenamos el rol y estado
             self.combo_rol.set(vals[3])
             
-            if vals[4] == "Activo" or vals[4] == "1" or vals[4] == 1: 
+            estado = str(vals[4])
+            if estado == "Activo" or estado == "1": 
                 self.chk_activo.select()
             else: 
                 self.chk_activo.deselect()
 
             self.btn_guardar.configure(text="Actualizar Usuario")
-            
-            # Mensaje opcional para que el usuario sepa que no necesita reescribir la pass
-            # messagebox.showinfo("Edición", "Deje la contraseña en blanco si no desea cambiarla.")

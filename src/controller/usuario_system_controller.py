@@ -25,37 +25,51 @@ class UsuarioSystemController:
             self.view.agregar_fila(u.id_usuario, u.nombre, u.usuario, u.rol, estado)
 
     def guardar_usuario(self, datos, id_actual=None):
+        # --- LÓGICA DE VALIDACIÓN (Movida desde la vista) ---
+        
+        # 1. Campos obligatorios básicos
         if not datos["nombre"] or not datos["usuario"] or not datos["rol"]:
-            messagebox.showerror("Error", "Todos los campos (Nombre, Usuario y Rol) son obligatorios")
+            messagebox.showerror("Error", "Nombre, Usuario y Rol son campos obligatorios")
             return
 
-        # Si es nuevo, la contraseña es obligatoria
-        if not id_actual and not datos["password"]:
-            messagebox.showerror("Error", "Debe asignar una contraseña al nuevo usuario")
+        p1 = datos["password"]
+        p2 = datos["confirm_pass"]
+
+        # 2. Coincidencia de contraseñas
+        # (Solo validamos si el usuario escribió algo en los campos de contraseña)
+        if (p1 or p2) and (p1 != p2):
+            messagebox.showerror("Error de Seguridad", "Las contraseñas no coinciden.\nPor favor verifíquelas.")
             return
 
+        # 3. Obligatoriedad de contraseña para NUEVOS usuarios
+        # Si es nuevo (id_actual es None) y no puso contraseña
+        if not id_actual and not p1:
+            messagebox.showerror("Error", "Debe asignar una contraseña al nuevo usuario.")
+            return
+
+        # --- CREACIÓN DEL MODELO ---
         nuevo_user = Usuario(
             id_usuario=id_actual,
             nombre=datos["nombre"],
             usuario=datos["usuario"],
-            password_hash=datos["password"], # Se usará solo si es un INSERT (nuevo)
+            password_hash=p1, # El modelo sabrá si guardarla o ignorarla (si está vacía en edición)
             rol=datos["rol"],
-            activo=1 if datos["activo"] else 0
+            activo=datos["activo"]
         )
 
+        # --- PERSISTENCIA ---
         if nuevo_user.guardar():
-            # Si se editó un usuario existente y se escribió una nueva contraseña, la actualizamos
-            if id_actual and datos["password"]:
-                Usuario.cambiar_password(id_actual, datos["password"])
+            # Si es edición y hubo cambio de contraseña, la actualizamos explícitamente
+            if id_actual and p1:
+                Usuario.cambiar_password(id_actual, p1)
                 
             messagebox.showinfo("Éxito", "Usuario guardado correctamente")
             self.view.limpiar_formulario()
             self.cargar_tabla()
         else:
-            messagebox.showerror("Error", "No se pudo guardar (Posiblemente el nombre de usuario ya existe)")
+            messagebox.showerror("Error", "No se pudo guardar.\nEs posible que el nombre de usuario ya exista.")
 
     def eliminar_usuario(self, id_usuario):
-        """Método llamado por el botón 'Eliminar Usuario' de la vista"""
         if Usuario.eliminar(id_usuario):
             messagebox.showinfo("Éxito", "Usuario eliminado del sistema.")
             self.view.limpiar_formulario()
