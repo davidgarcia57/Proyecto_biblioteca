@@ -3,7 +3,7 @@ Markdown<div align="center">
 # Sistema de Gestión Bibliotecaria  
 ### Congreso del Estado de Durango
 
-<img src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" alt="Logo Biblioteca" width="120"/>
+<img src="Proyecto_biblioteca\logo.png" alt="Logo Biblioteca" width="120"/>
 
 <br>
 
@@ -26,8 +26,6 @@ Markdown<div align="center">
 - [Instalación](#-instalación)
 - [Uso rápido](#-uso-rápido)
 - [Estructura del proyecto](#-estructura-del-proyecto)
-- [Capturas](#-capturas-de-pantalla)
-- [Créditos](#-créditos)
 
 <br>
 
@@ -52,40 +50,7 @@ Markdown<div align="center">
 
 <br>
 
-## Instalación
-
-```bash
-# 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/proyecto_biblioteca.git
-cd proyecto_biblioteca
-
-# 2. Crear entorno virtual (recomendado)
-python -m venv venv
-source venv/bin/activate    # Windows: venv\Scripts\activate
-
-# 3. Instalar dependencias
-pip install customtkinter pymysql Pillow reportlab
-
-# 4. Configurar la base de datos
-#   - Importa el archivo .sql incluido en /database/
-#   - Edita src/config/conexion_db.py con tus credenciales:
-#       self.password = "TU_CONTRASEÑA_AQUI"
-
-# 5. Ejecutar
-python main.py
-
-
-Uso rápido
-
-Iniciar sesión
-Usuario administrador por defecto:
-usuario: admin | contraseña: admin123
-Usa el menú lateral izquierdo para navegar entre módulos.
-Para realizar un préstamo → sección Préstamos → busca libro y lector → confirma.
-
-
-
-Estructura del proyecto
+## Estructura del proyecto
 textproyecto_biblioteca/
 ├── main.py                # Punto de entrada
 ├── src/
@@ -99,20 +64,7 @@ textproyecto_biblioteca/
 └── README.md
 
 
-Capturas de pantalla
-
-  Login
-  Dashboard
-  Préstamos
-  Reporte PDF
-
-(Cuando tengas las capturas, guárdalas en una carpeta /screenshots y actualiza las rutas)
-
 
 Créditos
 Desarrollado para el H. Congreso del Estado de Durango
 © 2025 Todos los derechos reservados.
-
-¡Listo para usar y con muy buena presencia en GitHub!
-
-```
