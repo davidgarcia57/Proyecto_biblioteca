@@ -6,8 +6,9 @@ class PasoBase(ctk.CTkFrame):
     def __init__(self, master, titulo_paso):
         super().__init__(master, fg_color="transparent")
         
-        # Colores
-        self.COLOR_TEXTO = "#5a3b2e"
+        # Colores del Tema
+        self.COLOR_FONDO_APP = "#F3E7D2" # El beige de fondo de tu app
+        self.COLOR_TEXTO = "#5a3b2e"     # El café oscuro original (más elegante)
         self.COLOR_BOTON = "#A7744A"
         self.COLOR_LINEA = "#A7744A"
         
@@ -23,42 +24,71 @@ class PasoBase(ctk.CTkFrame):
         frame = ctk.CTkFrame(self, fg_color="transparent")
         frame.pack(fill="x", pady=(0, 20))
         
-        ctk.CTkLabel(frame, text=texto, font=("Georgia", 20, "bold"), text_color=self.COLOR_TEXTO).pack(side="left")
-        ctk.CTkFrame(self, height=2, fg_color=self.COLOR_LINEA).pack(fill="x", pady=(0, 20))
+        # Título grande y elegante (Georgia se lee bien en títulos)
+        ctk.CTkLabel(
+            frame, 
+            text=texto, 
+            font=("Georgia", 26, "bold"), 
+            text_color=self.COLOR_TEXTO
+        ).pack(side="left")
+        
+        ctk.CTkFrame(self, height=2, fg_color=self.COLOR_LINEA).pack(fill="x", pady=(5, 20))
 
     def crear_input(self, label_text, row, col, colspan=1):
-        ctk.CTkLabel(self.grid_frame, text=label_text, font=("Georgia", 12, "bold"), text_color=self.COLOR_TEXTO).grid(row=row, column=col, sticky="w", pady=(10, 5), padx=10)
+        # Etiqueta: Arial para legibilidad, tamaño 16
+        ctk.CTkLabel(
+            self.grid_frame, 
+            text=label_text, 
+            font=("Arial", 16, "bold"), 
+            text_color=self.COLOR_TEXTO
+        ).grid(row=row, column=col, sticky="w", pady=(10, 5), padx=15)
         
-        entry = ctk.CTkEntry(self.grid_frame, placeholder_text=label_text, fg_color="white", text_color="black", border_color=self.COLOR_BOTON, height=35)
-        entry.grid(row=row+1, column=col, columnspan=colspan, sticky="ew", pady=(0, 5), padx=10)
+        # --- EL CAMBIO CLAVE ESTÁ AQUÍ ---
+        entry = ctk.CTkEntry(
+            self.grid_frame, 
+            placeholder_text=label_text, 
+            fg_color="white", 
+            text_color="black", 
+            border_color=self.COLOR_BOTON, 
+            border_width=2,
+            
+            # 1. Tamaño grande
+            height=45,              
+            font=("Arial", 16),     
+            
+            # 2. Redondeado suave (estético)
+            corner_radius=15,       
+            
+            # 3. TRUCO PARA QUE SE VEA BIEN: 
+            # Decirle que el fondo de atrás es el beige de la app
+            bg_color=self.COLOR_FONDO_APP 
+        )
+        entry.grid(row=row+1, column=col, columnspan=colspan, sticky="ew", pady=(0, 10), padx=15)
         return entry
 
     def validar_vacio(self, entry, nombre_campo):
-        """Retorna (True, "") si es válido, o (False, "Mensaje Error")"""
         texto = entry.get().strip()
         if not texto:
-            entry.configure(border_color="red")
+            entry.configure(border_color="#D32F2F") # Rojo error
             return False, f"El campo '{nombre_campo}' es obligatorio."
         entry.configure(border_color=self.COLOR_BOTON)
         return True, ""
 
     def validar_numero(self, entry, nombre_campo):
-        """Valida que sea numérico"""
         texto = entry.get().strip()
-        if texto and not texto.isdigit(): # Si tiene texto y no es numero
-            entry.configure(border_color="red")
+        if texto and not texto.isdigit():
+            entry.configure(border_color="#D32F2F")
             return False, f"'{nombre_campo}' debe ser un número entero."
         entry.configure(border_color=self.COLOR_BOTON)
         return True, ""
 
     def limpiar_campos(self):
-        """Busca todos los Entry hijos y los limpia"""
         for widget in self.grid_frame.winfo_children():
             if isinstance(widget, ctk.CTkEntry):
                 widget.delete(0, 'end')
                 widget.configure(border_color=self.COLOR_BOTON)
 
-# --- PASO 1: DATOS DE CONTROL ---
+# --- PASO 1 ---
 class Paso1(PasoBase):
     def __init__(self, master):
         super().__init__(master, "1. Datos de Ficha y Clasificación")
@@ -67,40 +97,71 @@ class Paso1(PasoBase):
         self.entry_isbn = self.crear_input("ISBN", 0, 1)
         self.entry_clasif = self.crear_input("Clasificación *", 2, 0, colspan=2)
         
-        # Checkboxes Ilustraciones
-        ctk.CTkLabel(self.grid_frame, text="Código de ilustraciones", font=("Georgia", 12, "bold"), text_color=self.COLOR_TEXTO).grid(row=4, column=0, sticky="w", padx=10, pady=(10,0))
+        # Checkboxes
+        ctk.CTkLabel(
+            self.grid_frame, 
+            text="Código de ilustraciones", 
+            font=("Arial", 16, "bold"), 
+            text_color=self.COLOR_TEXTO
+        ).grid(row=4, column=0, sticky="w", padx=15, pady=(15,0))
         
-        self.scroll_ilus = ctk.CTkScrollableFrame(self.grid_frame, height=150, fg_color="white", border_color=self.COLOR_BOTON, border_width=1, label_text="Seleccione:")
-        self.scroll_ilus.grid(row=5, column=0, sticky="ew", padx=10, pady=5)
+        self.scroll_ilus = ctk.CTkScrollableFrame(
+            self.grid_frame, 
+            height=180, 
+            fg_color="white", 
+            border_color=self.COLOR_BOTON, 
+            border_width=2, 
+            label_text="Seleccione:",
+            label_font=("Arial", 14, "bold"),
+            corner_radius=15,       # Redondeado también aquí
+            bg_color=self.COLOR_FONDO_APP # Suavizado contra el fondo beige
+        )
+        self.scroll_ilus.grid(row=5, column=0, sticky="ew", padx=15, pady=5)
         
         self.checks = []
-        opciones = ["A - Ilustraciones", "B - Mapa", "C - Retratos", "D - Fotografías", "E - Planos", "M - Gráficas", "N - Tablas", "Z - Otros"] # (Lista resumida por brevedad)
+        opciones = ["A - Ilustraciones", "B - Mapa", "C - Retratos", "D - Fotografías", "E - Planos", "M - Gráficas", "N - Tablas", "Z - Otros"] 
         for op in opciones:
-            chk = ctk.CTkCheckBox(self.scroll_ilus, text=op, text_color="black", fg_color=self.COLOR_BOTON)
-            chk.pack(anchor="w", pady=2)
+            chk = ctk.CTkCheckBox(
+                self.scroll_ilus, 
+                text=op, 
+                text_color="black", 
+                fg_color=self.COLOR_BOTON,
+                font=("Arial", 14), 
+                checkbox_width=28, 
+                checkbox_height=28,
+                corner_radius=8
+            )
+            chk.pack(anchor="w", pady=4, padx=5)
             self.checks.append(chk)
 
         # Idioma
         f_idioma = ctk.CTkFrame(self.grid_frame, fg_color="transparent")
-        f_idioma.grid(row=4, column=1, rowspan=2, sticky="nsew", padx=10, pady=10)
-        ctk.CTkLabel(f_idioma, text="Idioma", font=("Georgia", 12, "bold"), text_color=self.COLOR_TEXTO).pack(anchor="w")
-        self.entry_idioma = ctk.CTkEntry(f_idioma, fg_color="white", text_color="black", border_color=self.COLOR_BOTON)
-        self.entry_idioma.pack(fill="x")
+        f_idioma.grid(row=4, column=1, rowspan=2, sticky="nsew", padx=15, pady=10)
+        
+        ctk.CTkLabel(f_idioma, text="Idioma", font=("Arial", 16, "bold"), text_color=self.COLOR_TEXTO).pack(anchor="w", pady=(5,0))
+        
+        self.entry_idioma = ctk.CTkEntry(
+            f_idioma, 
+            fg_color="white", 
+            text_color="black", 
+            border_color=self.COLOR_BOTON, 
+            border_width=2,
+            height=45,
+            corner_radius=15,
+            font=("Arial", 16),
+            bg_color=self.COLOR_FONDO_APP
+        )
+        self.entry_idioma.pack(fill="x", pady=(5,0))
         self.entry_idioma.insert(0, "Español")
 
     def validar(self):
-        # 1. Validar Ficha
         ok, msg = self.validar_vacio(self.entry_ficha, "Ficha No.")
         if not ok: return False, msg
-        
-        # 2. Validar Clasificación
         ok, msg = self.validar_vacio(self.entry_clasif, "Clasificación")
         if not ok: return False, msg
-        
         return True, ""
 
     def obtener_datos(self):
-        # Procesar checkboxes
         codigos = [chk.cget("text").split(" - ")[0] for chk in self.checks if chk.get() == 1]
         return {
             "ficha_no": self.entry_ficha.get(),
@@ -128,10 +189,8 @@ class Paso2(PasoBase):
     def validar(self):
         ok, msg = self.validar_vacio(self.entry_autor, "Autor Personal")
         if not ok: return False, msg
-        
         ok, msg = self.validar_vacio(self.entry_titulo, "Título")
         if not ok: return False, msg
-        
         return True, ""
 
     def obtener_datos(self):
@@ -142,7 +201,7 @@ class Paso2(PasoBase):
             "asientos_secundarios": self.entry_asientos.get()
         }
 
-# --- PASO 3: PUBLICACIÓN (CON VALIDACIONES NUMÉRICAS) ---
+# --- PASO 3: PUBLICACIÓN ---
 class Paso3(PasoBase):
     def __init__(self, master):
         super().__init__(master, "3. Edición, Publicación y Descripción")
@@ -156,21 +215,18 @@ class Paso3(PasoBase):
         self.entry_desc = self.crear_input("Notas Generales", 8, 0, 2)
 
     def validar(self):
-        # 1. Validar Año (Numérico y Lógico)
         anio = self.entry_anio.get().strip()
         if anio:
             if not anio.isdigit():
-                self.entry_anio.configure(border_color="red")
+                self.entry_anio.configure(border_color="#D32F2F")
                 return False, "El Año debe ser numérico."
             if len(anio) != 4 or int(anio) > datetime.now().year + 1:
-                self.entry_anio.configure(border_color="red")
+                self.entry_anio.configure(border_color="#D32F2F")
                 return False, "Año no válido."
         self.entry_anio.configure(border_color=self.COLOR_BOTON)
 
-        # 2. Validar Páginas (Numérico)
         ok, msg = self.validar_numero(self.entry_paginas, "Páginas")
         if not ok: return False, msg
-
         return True, ""
 
     def obtener_datos(self):
@@ -199,14 +255,11 @@ class Paso4(PasoBase):
         self.entry_volumen = self.crear_input("Volumen", 4, 1)
 
     def validar(self):
-        # Validar que copia sea numero
         ok, msg = self.validar_numero(self.entry_copia, "Número de Copia")
         if not ok: return False, msg
-        
         return True, ""
 
     def obtener_datos(self):
-        # Formatear "Copia X" si solo ponen el numero
         copia = self.entry_copia.get()
         if copia.isdigit():
             copia = f"Copia {copia}"

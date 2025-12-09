@@ -5,7 +5,7 @@ class FrmBuscarLibro(ctk.CTkFrame):
     
     # --- PALETA DE COLORES ---
     COLOR_FONDO = "#F3E7D2"
-    COLOR_TEXTO = "#5a3b2e"
+    COLOR_TEXTO = "#000000" # Cambio a Negro puro para máximo contraste
     COLOR_BOTON = "#A7744A"
     COLOR_HOVER = "#8c5e3c"
     
@@ -30,62 +30,60 @@ class FrmBuscarLibro(ctk.CTkFrame):
         self.crear_tabla_resultados()
 
     def crear_header(self):
-        # HEADER AHORA SOLO TIENE EL BOTÓN DE VOLVER
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(20, 0))
         
+        # Botón Volver (Estilo Grande)
         self.btn_volver = ctk.CTkButton(
             header_frame,
-            text="⬅ Volver al Menú",
-            font=("Arial", 14, "bold"),
+            text="⬅ Volver",
+            font=("Arial", 18, "bold"), # Fuente grande
+            width=150,                  # Más ancho
+            height=50,                  # Más alto
             fg_color="transparent",
             text_color=self.COLOR_BOTON,
             border_width=2,
             border_color=self.COLOR_BOTON,
             hover_color=self.COLOR_FONDO,
-            width=100,
             command=self.volver_menu
         )
         self.btn_volver.pack(side="left") 
-        # (El título se movió de aquí)
 
     def crear_elementos_busqueda(self):
         frame_busqueda = ctk.CTkFrame(self, fg_color="transparent")
-        frame_busqueda.grid(row=1, column=0, sticky="n", pady=(10, 30)) # Ajusté un poco el padding vertical
+        frame_busqueda.grid(row=1, column=0, sticky="n", pady=(10, 20))
         
-        # --- [CAMBIO] TÍTULO AQUÍ ---
-        # Lo colocamos en la fila 0, alineado a la izquierda ("w")
+        # Título Grande
         self.lbl_titulo = ctk.CTkLabel(
             frame_busqueda, 
             text="Catálogo de Libros", 
-            font=("Georgia", 32, "bold"), # Hice la letra un poco más grande
+            font=("Arial", 32, "bold"), # Arial 32px para lectura fácil
             text_color=self.COLOR_TEXTO
         )
-        # columnspan=3 permite que el título ocupe el ancho de la barra + botones si es largo
-        self.lbl_titulo.grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 10))
+        self.lbl_titulo.grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 15))
 
-        # --- CAJA DE BÚSQUEDA (Mochila a Fila 1) ---
+        # --- INPUT BÚSQUEDA GIGANTE ---
         self.txt_busqueda = ctk.CTkEntry(
             frame_busqueda, 
             textvariable=self.texto_busqueda,
             placeholder_text="Título, Autor o ISBN del libro...",
-            height=40,
-            width=400,
+            height=50,              # Altura aumentada (antes 40)
+            width=500,              # Ancho aumentado
             fg_color="white", 
             text_color="black",
             border_color=self.COLOR_BOTON,
             border_width=2,
-            font=("Arial", 14)
+            font=("Arial", 18)      # Fuente 18px
         )
-        self.txt_busqueda.grid(row=1, column=0, padx=(0, 10))
+        self.txt_busqueda.grid(row=1, column=0, padx=(0, 15))
 
-        # --- BOTONES (Mochila a Fila 1) ---
+        # --- BOTONES DE ACCIÓN (Texto + Icono) ---
         self.btn_buscar = ctk.CTkButton(
             frame_busqueda,
-            text="🔍",
-            width=60,
-            height=40,
-            font=("Georgia", 14, "bold"),
+            text="🔍 BUSCAR",        # Texto explícito
+            width=140,
+            height=50,              # Altura accesible
+            font=("Arial", 16, "bold"),
             fg_color=self.COLOR_BOTON,
             hover_color=self.COLOR_HOVER,
             text_color="white",
@@ -95,37 +93,44 @@ class FrmBuscarLibro(ctk.CTkFrame):
 
         self.btn_agregar = ctk.CTkButton(
             frame_busqueda,
-            text="+",
-            width=40,
-            height=40,
+            text="➕ Nuevo",          # Texto explícito
+            width=120,
+            height=50,
             fg_color="#2E7D32",
             hover_color="#1B5E20",
-            font=("Arial", 20, "bold"),
+            font=("Arial", 16, "bold"),
             command=self.evento_agregar
         )
-        self.btn_agregar.grid(row=1, column=2, padx=5)
+        self.btn_agregar.grid(row=1, column=2, padx=10)
             
     def crear_tabla_resultados(self):
-        frame_tabla = ctk.CTkFrame(self, fg_color="transparent")
+        # Frame contenedor
+        frame_tabla = ctk.CTkFrame(self, fg_color="white") # Fondo blanco para la tabla
         frame_tabla.grid(row=2, column=0, sticky="nsew", padx=20, pady=(0, 20))
         
+        # Configuración de Estilos Grandes
         style = ttk.Style()
         style.theme_use("clam")
+        
         style.configure("Treeview", 
                         background="white",
-                        foreground=self.COLOR_TEXTO,
-                        rowheight=30,
+                        foreground="black",
+                        rowheight=40,           # Filas altas (40px)
                         fieldbackground="white",
-                        font=("Arial", 11))
+                        font=("Arial", 14))     # Fuente del contenido (14px)
+                        
         style.configure("Treeview.Heading", 
                         background=self.COLOR_BOTON,
                         foreground="white",
-                        font=("Georgia", 12, "bold"))
+                        font=("Arial", 16, "bold")) # Cabeceras grandes (16px)
+                        
         style.map("Treeview", background=[('selected', self.COLOR_HOVER)])
 
+        # Columnas (Mismos datos)
         columns = ("id", "titulo", "isbn", "autor", "anio", "editorial", "disp")
         self.tree = ttk.Treeview(frame_tabla, columns=columns, show="headings", selectmode="browse")
         
+        # Cabeceras
         self.tree.heading("id", text="ID")
         self.tree.heading("titulo", text="Título")
         self.tree.heading("isbn", text="ISBN")
@@ -134,22 +139,25 @@ class FrmBuscarLibro(ctk.CTkFrame):
         self.tree.heading("editorial", text="Editorial")
         self.tree.heading("disp", text="Disponibilidad")
 
-        self.tree.column("id", width=40, anchor="center")
-        self.tree.column("titulo", width=250)
-        self.tree.column("isbn", width=100)
-        self.tree.column("autor", width=150)
-        self.tree.column("anio", width=60, anchor="center")
-        self.tree.column("editorial", width=120)
-        self.tree.column("disp", width=120, anchor="center")
+        # Anchos (Ajustados ligeramente para la fuente más grande)
+        self.tree.column("id", width=50, anchor="center")
+        self.tree.column("titulo", width=300) # Más espacio para título
+        self.tree.column("isbn", width=120)
+        self.tree.column("autor", width=200)  # Más espacio para autor
+        self.tree.column("anio", width=70, anchor="center")
+        self.tree.column("editorial", width=150)
+        self.tree.column("disp", width=150, anchor="center")
 
-        scrollbar = ttk.Scrollbar(frame_tabla, orient="vertical", command=self.tree.yview)
+        # Scrollbar (Usamos CTkScrollbar que es más estilizable y ancho)
+        scrollbar = ctk.CTkScrollbar(frame_tabla, orientation="vertical", command=self.tree.yview, width=22)
         self.tree.configure(yscroll=scrollbar.set)
         
         self.tree.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+        
         self.tree.bind("<Double-1>", self.evento_doble_clic)
 
-    # --- LÓGICA DE BÚSQUEDA ---
+    # --- LÓGICA DE BÚSQUEDA (INTACTA) ---
     def al_escribir(self, *args):
         if self.id_busqueda_programada:
             self.after_cancel(self.id_busqueda_programada)
