@@ -1,18 +1,118 @@
-<!-- ENCABEZADO CENTRADO --><div align="center"><img src="https://www.google.com/search?q=https://cdn-icons-png.flaticon.com/512/2232/2232688.png" alt="Logo Biblioteca" width="100" height="100">Sistema de Gestión BibliotecariaCongreso del Estado de Durango<!-- BADGES --><p><img src="Proyecto_biblioteca\logo.png" alt="Version"><img src="https://www.google.com/search?q=https://img.shields.io/badge/Estado-Terminado-success%3Fstyle%3Dfor-the-badge%26logo%3Dappveyor" alt="Estado"><img src="https://www.google.com/search?q=https://img.shields.io/badge/Python-3.x-3776AB%3Fstyle%3Dfor-the-badge%26logo%3Dpython%26logoColor%3Dwhite" alt="Python"></p></div>💡 DescripciónAplicación de escritorio moderna desarrollada en Python para la administración integral de flujos de trabajo bibliotecarios. Gestiona catálogo, usuarios y préstamos con una interfaz intuitiva y reportes profesionales.📑 Tabla de Contenidos✨ Características🛠️ Tecnologías⚙️ Instalación🚀 Uso📂 Estructura✨ CaracterísticasMóduloDescripción🔐 Control de AccesoLogin seguro con roles (Admin/Bibliotecario).📚 InventarioRegistro por pasos, búsqueda y bajas.🔄 CirculaciónPréstamos y devoluciones con validación.👥 UsuariosGestión de lectores y visitas.📄 ReportesGeneración de PDFs automáticos.🛠️ TecnologíasEste proyecto utiliza las siguientes librerías:Interfaz: customtkinter (Diseño moderno).Base de Datos: pymysql (Conexión a MySQL).Imágenes: Pillow (Manejo de logos).Reportes: reportlab (Generación de PDF).⚙️ InstalaciónSigue estos pasos en tu terminal:1. Clonar el proyectogit clone [https://github.com/tu-usuario/proyecto_biblioteca.git](https://github.com/tu-usuario/proyecto_biblioteca.git)
+Markdown<div align="center">
+
+# Sistema de Gestión Bibliotecaria  
+### Congreso del Estado de Durango
+
+<img src="https://cdn-icons-png.flaticon.com/512/2232/2232688.png" alt="Logo Biblioteca" width="120"/>
+
+<br>
+
+![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![CustomTkinter](https://img.shields.io/badge/CustomTkinter-Modern_UI-1f1f1f?style=for-the-badge)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Estado](https://img.shields.io/badge/Estado-Terminado-brightgreen?style=for-the-badge)
+
+</div>
+
+<br>
+
+### Aplicación de escritorio moderna desarrollada en Python para la administración completa de bibliotecas: catálogo, usuarios, préstamos, reportes en PDF y más.
+
+---
+
+## Tabla de contenidos
+- [Características](#-características)
+- [Tecnologías](#-tecnologías)
+- [Instalación](#-instalación)
+- [Uso rápido](#-uso-rápido)
+- [Estructura del proyecto](#-estructura-del-proyecto)
+- [Capturas](#-capturas-de-pantalla)
+- [Créditos](#-créditos)
+
+<br>
+
+## Características
+
+| Módulo             | Descripción                                           |
+|---------------------|--------------------------------------------------------|
+| Control de Acceso   | Login seguro con roles (Administrador / Bibliotecario)    |
+| Inventario          | Alta, búsqueda, modificación y baja de libros por pasos |
+| Circulación         | Préstamos y devoluciones con validación automática     |
+| Usuarios            | Gestión de lectores y registro de visitas              |
+| Reportes            | Generación automática de PDFs profesionales            |
+
+<br>
+
+## Tecnologías
+
+- **Interfaz gráfica**: `customtkinter` (diseño moderno tipo dark/light)
+- **Base de datos**: `pymysql` + MySQL 8.0
+- **Manejo de imágenes**: `Pillow`
+- **Reportes PDF**: `reportlab`
+
+<br>
+
+## Instalación
+
+```bash
+# 1. Clonar el repositorio
+git clone https://github.com/tu-usuario/proyecto_biblioteca.git
 cd proyecto_biblioteca
-2. Instalar dependenciaspip install customtkinter pymysql Pillow reportlab
-3. Configurar Base de DatosImporta el script SQL en tu servidor MySQL.Edita el archivo src/config/conexion_db.py con tu contraseña:self.host = "localhost"
-self.user = "root"
-self.password = "TU_CONTRASEÑA_AQUI"
-self.database = "biblioteca_normalizada"
-4. Ejecutar la aplicaciónpython main.py
-🚀 Uso RápidoInicio de Sesión: Usa las credenciales de administrador.Menú Principal: Usa la barra lateral izquierda para navegar.Préstamos: Ve a la sección "Préstamos", busca el libro y el usuario, y confirma.📂 Estructura del Proyectoproyecto_biblioteca/
-├── main.py               # Archivo principal
+
+# 2. Crear entorno virtual (recomendado)
+python -m venv venv
+source venv/bin/activate    # Windows: venv\Scripts\activate
+
+# 3. Instalar dependencias
+pip install customtkinter pymysql Pillow reportlab
+
+# 4. Configurar la base de datos
+#   - Importa el archivo .sql incluido en /database/
+#   - Edita src/config/conexion_db.py con tus credenciales:
+#       self.password = "TU_CONTRASEÑA_AQUI"
+
+# 5. Ejecutar
+python main.py
+
+
+Uso rápido
+
+Iniciar sesión
+Usuario administrador por defecto:
+usuario: admin | contraseña: admin123
+Usa el menú lateral izquierdo para navegar entre módulos.
+Para realizar un préstamo → sección Préstamos → busca libro y lector → confirma.
+
+
+
+Estructura del proyecto
+textproyecto_biblioteca/
+├── main.py                # Punto de entrada
 ├── src/
-│   ├── config/           # Conexión DB
-│   ├── controller/       # Lógica del sistema
-│   ├── model/            # Consultas SQL
-│   ├── view/             # Ventanas gráficas
-│   └── navegador.py      # Router
-└── README.md             # Este archivo
-<div align="center"><p>Desarrollado para el Congreso del Estado de Durango</p><p>© 2025 Todos los derechos reservados.</p></div>
+│   ├── config/            # Configuración y conexión DB
+│   ├── controller/        # Lógica de la aplicación
+│   ├── model/             # Consultas SQL
+│   ├── view/              # Ventanas e interfaz
+│   └── navegador.py       # Sistema de navegación entre pantallas
+├── database/              # Script SQL de la base de datos
+├── assets/                # Imágenes y recursos (opcional)
+└── README.md
+
+
+Capturas de pantalla
+
+  Login
+  Dashboard
+  Préstamos
+  Reporte PDF
+
+(Cuando tengas las capturas, guárdalas en una carpeta /screenshots y actualiza las rutas)
+
+
+Créditos
+Desarrollado para el H. Congreso del Estado de Durango
+© 2025 Todos los derechos reservados.
+
+¡Listo para usar y con muy buena presencia en GitHub!
+
+```
