@@ -1,4 +1,3 @@
-import tkinter as tk # Importamos tkinter para el Menú Nativo
 from src.controller.login_controller import LoginController
 from src.controller.catalogo_controller import CatalogoController
 from src.controller.busqueda_controller import BusquedaController
@@ -7,13 +6,19 @@ from src.controller.prestamo_controller import PrestamoController
 from src.controller.usuario_system_controller import UsuarioSystemController
 from src.controller.visitas_controller import VisitasController
 
-# Vistas simples
+# Importamos las vistas que no tienen un controlador complejo propio
+# o que se usan como "sub-vistas" simples.
 from src.view.circulacion.frm_menu import FrmMenuPrincipal
 from src.view.inventario.frm_baja_libro import FrmBajaLibro
 from src.view.reportes.frm_generar_reportes import FrmGenerarReportes
-from src.view.circulacion.frm_lista_prestamos import FrmListaPrestamos
+# FrmListaPrestamos ya no se importa aquí necesariamente si el controlador la maneja,
+# pero no hace daño dejarla si se usa en algún tipo de chequeo.
 
 class ControladorNavegacionSimple:
+    """
+    Controlador auxiliar para vistas simples que solo necesitan volver al menú.
+    Ejemplo: FrmGenerarReportes.
+    """
     def __init__(self, router):
         self.router = router
     def volver_menu(self):
@@ -25,71 +30,28 @@ class Router:
         self.container = app.container
 
     def limpiar_contenedor(self):
+        """Destruye el contenido actual para mostrar una nueva pantalla."""
         for widget in self.container.winfo_children():
             widget.destroy()
 
-    # --- LÓGICA DE LA BARRA DE MENÚ (NUEVO AQUÍ) ---
-    def configurar_menu_superior(self):
-        """Construye y asigna la barra de menú nativa a la ventana principal"""
-        barra_menu = tk.Menu(self.app)
-
-        # 1. MENÚ ARCHIVO
-        menu_archivo = tk.Menu(barra_menu, tearoff=0)
-        menu_archivo.add_command(label="Inicio (Dashboard)", command=self.mostrar_menu_principal)
-        menu_archivo.add_separator()
-        menu_archivo.add_command(label="Cerrar Sesión", command=self.cerrar_sesion)
-        menu_archivo.add_command(label="Salir", command=self.app.destroy)
-        barra_menu.add_cascade(label="Archivo", menu=menu_archivo)
-
-        # 2. MENÚ LIBROS
-        menu_libros = tk.Menu(barra_menu, tearoff=0)
-        menu_libros.add_command(label="Consultar Libro", command=self.mostrar_busqueda)
-        menu_libros.add_command(label="Agregar Libro", command=self.mostrar_catalogo)
-        menu_libros.add_command(label="Quitar Libro", command=self.mostrar_baja_libros)
-        barra_menu.add_cascade(label="Libros", menu=menu_libros)
-
-        # 3. MENÚ CIRCULACIÓN
-        menu_circulacion = tk.Menu(barra_menu, tearoff=0)
-        menu_circulacion.add_command(label="Realizar Préstamo", command=self.mostrar_prestamos)
-        menu_circulacion.add_command(label="Lista de Préstamos Activos", command=self.mostrar_lista_prestamos)
-        menu_circulacion.add_separator()
-        menu_circulacion.add_command(label="Gestionar Solicitantes", command=self.mostrar_solicitantes)
-        menu_circulacion.add_command(label="Registro de Visitas", command=self.mostrar_registro_visitas)
-        barra_menu.add_cascade(label="Circulación", menu=menu_circulacion)
-
-        # 4. MENÚ REPORTES
-        menu_reportes = tk.Menu(barra_menu, tearoff=0)
-        menu_reportes.add_command(label="📊 Generar Reportes PDF", command=self.mostrar_reportes_avanzados)
-        barra_menu.add_cascade(label="Reportes", menu=menu_reportes)
-
-        # 5. MENÚ CONFIGURACIÓN (SOLO ADMIN)
-        # Accedemos al usuario a través de la app
-        usuario = self.app.usuario_actual
-        if usuario and usuario.rol == 'Admin':
-            menu_config = tk.Menu(barra_menu, tearoff=0)
-            menu_config.add_command(label="🔐 Configuración del Sistema", command=self.mostrar_usuarios_sistema)
-            barra_menu.add_cascade(label="Configuración", menu=menu_config)
-
-        # Asignar el menú a la ventana principal (App)
-        self.app.config(menu=barra_menu)
-
     def cerrar_sesion(self):
-        """Limpia el usuario, quita el menú y vuelve al login"""
+        """Limpia el usuario actual y regresa al Login."""
         self.app.usuario_actual = None
-        # Quitamos el menú superior pasando un menú vacío
-        self.app.config(menu=tk.Menu(self.app)) 
         self.mostrar_login()
 
-    # --- RUTAS DE NAVEGACIÓN ---
+    # =========================================================================
+    # RUTAS DE NAVEGACIÓN
+    # =========================================================================
 
     def mostrar_login(self):
         self.limpiar_contenedor()
         controller = LoginController(self.container, self.app)
+        # La vista se carga dentro del __init__ del controlador, aquí solo la mostramos
         controller.view.pack(fill="both", expand=True)
 
     def mostrar_menu_principal(self):
         self.limpiar_contenedor()
-        # Pasamos 'self' como controller porque el menú necesita navegar
+        # El menú principal usa al propio Router como controlador para navegar
         view = FrmMenuPrincipal(self.container, controller=self)
         view.pack(fill="both", expand=True)
 
@@ -104,7 +66,12 @@ class Router:
 
     def mostrar_busqueda(self):
         self.limpiar_contenedor()
-        controller = BusquedaController(self.container, on_close=self.mostrar_menu_principal, on_add_book=self.mostrar_catalogo)
+        # BusquedaController maneja su propia lógica y popup
+        controller = BusquedaController(
+            self.container, 
+            on_close=self.mostrar_menu_principal, 
+            on_add_book=self.mostrar_catalogo
+        )
         controller.view.pack(fill="both", expand=True)
 
     def mostrar_prestamos(self):
@@ -114,7 +81,19 @@ class Router:
             usuario_sistema=self.app.usuario_actual, 
             on_close=self.mostrar_menu_principal
         )
+        # Por defecto, PrestamoController carga la vista de "Nuevo Préstamo"
         controller.view.pack(fill="both", expand=True)
+
+    def mostrar_lista_prestamos(self):
+        self.limpiar_contenedor()
+        # Usamos el mismo controlador de Préstamos
+        controller = PrestamoController(
+            self.container, 
+            usuario_sistema=self.app.usuario_actual, 
+            on_close=self.mostrar_menu_principal
+        )
+        # IMPORTANTE: Llamamos al método especial que cambia la vista a la Lista
+        controller.iniciar_lista_prestamos()
     
     def mostrar_solicitantes(self):
         self.limpiar_contenedor()
@@ -123,32 +102,22 @@ class Router:
 
     def mostrar_baja_libros(self):
         self.limpiar_contenedor()
-        # Reutilizamos CatalogoController para la lógica de baja (o podrías crear uno propio)
+        # Reutilizamos CatalogoController para la lógica de baja (comparte modelos)
         controller = CatalogoController(
             self.container, 
             id_usuario_actual=self.app.usuario_actual.id_usuario, 
             on_close=self.mostrar_menu_principal
         )
-        # Hack rápido: Limpiamos la vista por defecto del controller y ponemos la de Baja
+        # Limpiamos la vista por defecto del controlador para poner la de Baja
         for widget in controller.view_container.winfo_children(): widget.destroy()
         
+        # Inyectamos manualmente la vista de BajaLibro al controlador existente
         controller.view = FrmBajaLibro(self.container, controller)
-        controller.view.pack(fill="both", expand=True)
-
-    def mostrar_lista_prestamos(self):
-        self.limpiar_contenedor()
-        controller = PrestamoController(
-            self.container, 
-            usuario_sistema=self.app.usuario_actual, 
-            on_close=self.mostrar_menu_principal
-        )
-        for widget in controller.view_container.winfo_children(): widget.destroy()
-
-        controller.view = FrmListaPrestamos(self.container, controller)
         controller.view.pack(fill="both", expand=True)
 
     def mostrar_reportes_avanzados(self):
         self.limpiar_contenedor()
+        # Usamos el controlador simple para esta vista estática
         ctrl_navegacion = ControladorNavegacionSimple(self)
         view = FrmGenerarReportes(self.container, ctrl_navegacion)
         view.pack(fill="both", expand=True)
