@@ -3,7 +3,7 @@ Markdown<div align="center">
 # Sistema de Gestión Bibliotecaria  
 ### Congreso del Estado de Durango
 
-<img src="logo.png" width="120"/>
+<img src="src/resources/logo.png" width="120"/>
 
 <br>
 
