@@ -13,16 +13,15 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         
         self.usuario = self.controller.app.usuario_actual
         
-        # --- LÓGICA DE USUARIO Y ROL CORREGIDA ---
-        # 1. Obtenemos el rol crudo (como viene de la BD)
+        # --- LÓGICA DE USUARIO Y ROL ---
+        # 1. Obtenemos el rol crudo
         raw_rol = self.usuario.rol if self.usuario else "Invitado"
         nombre_usuario = self.usuario.nombre if self.usuario else "Usuario"
 
-        # 2. Normalizamos: Convertimos a string, quitamos espacios extra y hacemos minúsculas
-        # Esto hace que "Administrador ", "ADMIN", "admin" o "Admin" sean iguales.
+        # 2. Normalizamos
         self.rol_limpio = str(raw_rol).strip().lower()
 
-        # Opcional: Imprimir en consola para verificar qué está llegando
+        # Opcional: Debug
         print(f"DEBUG - Rol detectado: '{raw_rol}' -> Normalizado: '{self.rol_limpio}'")
 
         # --- PALETA DE COLORES ---
@@ -84,17 +83,7 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         self.crear_boton_menu(self.frm_nav, " 📊 Reportes", self.controller.mostrar_reportes_avanzados)
         self.crear_boton_menu(self.frm_nav, " 🚶 Visitas", self.controller.mostrar_registro_visitas)
 
-        # --- BOTÓN CONFIGURACIÓN (ABAJO EN EL SIDEBAR) ---
-        # AQUI ES DONDE OCURRIA EL ERROR: Ahora comparamos con la versión limpia
-        if self.rol_limpio in ["admin", "administrador"]:
-            
-            self.frm_config = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
-            self.frm_config.pack(side="bottom", fill="x", pady=20)
-            
-            # Línea separadora
-            ctk.CTkFrame(self.frm_config, height=2, fg_color="white").pack(fill="x", padx=20, pady=(0, 10))
-            
-            self.crear_boton_menu(self.frm_config, "⚙️ Configuración", self.controller.mostrar_usuarios_sistema)
+        # NOTA: Se eliminó el botón de configuración de aquí (sidebar inferior)
 
         # =================================================
         #              2. ÁREA PRINCIPAL
@@ -119,17 +108,20 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         )
         self.lbl_seccion.pack(side="left", padx=30, pady=20)
         
-        self.btn_logout = ctk.CTkButton(
-            self.header_frame, 
-            text="Cerrar Sesión", 
-            font=("Arial", 16, "bold"), 
-            fg_color="#D32F2F", 
-            hover_color="#B71C1C", 
-            width=150, 
-            height=50, 
-            command=self.confirmar_salida
-        )
-        self.btn_logout.pack(side="right", padx=30)
+        # --- RUEDA DE CONFIGURACIÓN (SUPERIOR DERECHA) ---
+        if self.rol_limpio in ["admin", "administrador"]:
+            self.btn_config = ctk.CTkButton(
+                self.header_frame, 
+                text="⚙️", # Icono de engranaje
+                font=("Arial", 30), 
+                width=50, 
+                height=50, 
+                fg_color="transparent", 
+                text_color=self.COLOR_TEXTO, 
+                hover_color="#E0E0E0", 
+                command=self.controller.mostrar_usuarios_sistema
+            )
+            self.btn_config.pack(side="right", padx=30)
 
         # =================================================
         #              3. DASHBOARD (CENTRO)
@@ -168,17 +160,22 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         self.crear_boton_rapido(frame_acciones, "Buscar Libro", "🔍", self.controller.mostrar_busqueda, 1, 1)
 
         # =================================================
-        #              4. FOOTER (PRIVACIDAD)
+        #              4. FOOTER (PRIVACIDAD Y SALIR)
         # =================================================
         self.footer_frame = ctk.CTkFrame(self.main_content, fg_color="transparent")
-        self.footer_frame.grid(row=2, column=0, sticky="ew", pady=(0, 30))
+        self.footer_frame.grid(row=2, column=0, sticky="ew", pady=(0, 30), padx=30)
         
+        # Configurar columnas del footer: [ Espacio flexible (Privacidad) | Espacio fijo (Salir) ]
+        self.footer_frame.grid_columnconfigure(0, weight=1)
+        self.footer_frame.grid_columnconfigure(1, weight=0)
+
+        # Botón de Privacidad (Centrado en su columna o a la izquierda)
         self.btn_privacidad = ctk.CTkButton(
             self.footer_frame, 
             text="📜  AVISO DE PRIVACIDAD", 
             font=("Arial", 14, "bold"),
             fg_color="transparent",
-            text_color="#A7744A",   # Color del tema
+            text_color="#A7744A",
             border_width=2,
             border_color="#A7744A",
             hover_color="#E8D6C0",
@@ -186,7 +183,20 @@ class FrmMenuPrincipal(ctk.CTkFrame):
             width=280,
             command=self.abrir_privacidad
         )
-        self.btn_privacidad.pack()
+        self.btn_privacidad.grid(row=0, column=0) # Al estar en col 0 con weight 1, se centrará visualmente en ese espacio
+
+        # --- BOTÓN CERRAR SESIÓN (ESQUINA INFERIOR DERECHA) ---
+        self.btn_logout = ctk.CTkButton(
+            self.footer_frame, 
+            text="Cerrar Sesión", 
+            font=("Arial", 16, "bold"), 
+            fg_color="#D32F2F", 
+            hover_color="#B71C1C", 
+            width=150, 
+            height=45, 
+            command=self.confirmar_salida
+        )
+        self.btn_logout.grid(row=0, column=1, sticky="e", padx=(20, 0))
 
     # =================================================
     #              MÉTODOS AUXILIARES
