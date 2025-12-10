@@ -3,6 +3,7 @@ import sys
 import customtkinter as ctk
 from tkinter import messagebox
 from src.model.Estadisticas import Estadisticas
+from src.utils import resource_path
 
 class FrmMenuPrincipal(ctk.CTkFrame):
     def __init__(self, master, controller=None):
@@ -204,20 +205,16 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         btn.grid(row=fila, column=col, padx=15, pady=10, sticky="ew")
 
     def abrir_privacidad(self):
-        # (Código original se mantiene)
-        filename = "AVISO DE PRIVACIDAD INTEGRAL DE LOS SERVICIOS BIBLIOTECARIOS.pdf"
-        if getattr(sys,'frozen', False):
-            base_path = os.path.dirname(sys.executable)
-        else:
-            base_path = os.getcwd() 
-        ruta_completa = os.path.join(base_path,filename)
-        if os.path.exists(ruta_completa):
+        filename = "assets/AVISO DE PRIVACIDAD INTEGRAL DE LOS SERVICIOS BIBLIOTECARIOS.pdf"
+        ruta_pdf = resource_path(filename)
+
+        if os.path.exists(ruta_pdf):
             try:
-                os.startfile(ruta_completa)
+                os.startfile(ruta_pdf)
             except Exception as e:
-                print(f"Error al abrir PDF: {e}")
+                messagebox.ERROR(f"Error al abrir PDF: {e}")
         else:
-            print(f"No se encontró el archivo: {ruta_completa}")
+            messagebox.ERROR(f"No se encontró el archivo: {ruta_pdf}")
 
     def confirmar_salida(self):
         # CAMBIO: No podemos cambiar el tamaño de letra del messagebox nativo fácilmente,
