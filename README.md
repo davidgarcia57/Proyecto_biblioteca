@@ -23,8 +23,6 @@ Markdown<div align="center">
 ## Tabla de contenidos
 - [Características](#-características)
 - [Tecnologías](#-tecnologías)
-- [Instalación](#-instalación)
-- [Uso rápido](#-uso-rápido)
 - [Estructura del proyecto](#-estructura-del-proyecto)
 
 <br>
@@ -51,20 +49,25 @@ Markdown<div align="center">
 <br>
 
 ## Estructura del proyecto
-textproyecto_biblioteca/
-├── main.py                # Punto de entrada
+
+```text
+proyecto_biblioteca/
 ├── src/
-│   ├── config/            # Configuración y conexión DB
-│   ├── controller/        # Lógica de la aplicación
-│   ├── model/             # Consultas SQL
-│   ├── view/              # Ventanas e interfaz
-│   └── navegador.py       # Sistema de navegación entre pantallas
-├── database/              # Script SQL de la base de datos
-├── assets/                # Imágenes y recursos (opcional)
+│   ├── config/          # Configuración y conexión DB
+│   ├── controller/      # Lógica de la aplicación
+│   ├── model/           # Consultas SQL
+│   ├── view/            # Ventanas e interfaz
+│   └── navegador.py     # Sistema de navegación entre pantallas
+├── database/            # Script SQL de la base de datos
+├── assets/              # Imágenes y recursos (opcional)
+├── main.py              # Punto de entrada
 └── README.md
+```
 
+<div align="center">
 
+Créditos Desarrollado para el H. Congreso del Estado de Durango
 
-Créditos
-Desarrollado para el H. Congreso del Estado de Durango
 © 2025 Todos los derechos reservados.
+
+</div>
