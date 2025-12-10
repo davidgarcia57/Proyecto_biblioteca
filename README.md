@@ -57,9 +57,9 @@ proyecto_biblioteca/
 │   ├── controller/      # Lógica de la aplicación
 │   ├── model/           # Consultas SQL
 │   ├── view/            # Ventanas e interfaz
+├   ├── resources/       # Imágenes y recursos
 │   └── navegador.py     # Sistema de navegación entre pantallas
-├── database/            # Script SQL de la base de datos
-├── assets/              # Imágenes y recursos (opcional)
+├── database/            # Script SQL de la base de datos              
 ├── main.py              # Punto de entrada
 └── README.md
 ```
