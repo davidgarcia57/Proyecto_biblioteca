@@ -9,7 +9,7 @@ class App(ctk.CTk):
     def __init__(self):
         super().__init__()
         
-        self.title("Sistema de Biblioteca - Congreso de Durango")
+        self.title("Sistema de Biblioteca - Congreso de Durango") 
         
         # En lugar de self.state("zoomed"), usamos un retraso de 0ms
         # para asegurar que la ventana ya existe antes de maximizarla.
