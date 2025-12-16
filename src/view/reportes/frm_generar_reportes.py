@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from src.controller.reportes_controller import ReportesController
 from datetime import datetime
 
@@ -10,124 +10,165 @@ class FrmGenerarReportes(ctk.CTkFrame):
         self.main_controller = controller 
         
         self.configure(fg_color="#F3E7D2")
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_rowconfigure(1, weight=1)
-
-        self.frm_bajas = ctk.CTkFrame(self, fg_color="white", corner_radius=15)
-        # Lo ponemos en la fila 2, abarcando ambas columnas para que se vea destacado
-        self.frm_bajas.grid(row=2, column=0, columnspan=2, sticky="ew", padx=20, pady=20)
         
-        ctk.CTkLabel(self.frm_bajas, text="🗑️", font=("Arial", 30)).pack(side="left", padx=20)
-        ctk.CTkLabel(self.frm_bajas, text="Inventario de Libros de Baja", font=("Georgia", 16, "bold"), text_color="#D32F2F").pack(side="left")
+        # Grid Asimétrico: 40% Instrucciones | 60% Botones
+        self.grid_columnconfigure(0, weight=4) 
+        self.grid_columnconfigure(1, weight=6)
+        self.grid_rowconfigure(1, weight=1) 
+        
+        # ==================================================
+        #                 1. ENCABEZADO
+        # ==================================================
+        frm_header = ctk.CTkFrame(self, fg_color="transparent")
+        frm_header.grid(row=0, column=0, columnspan=2, sticky="ew", padx=20, pady=20)
+        
+        # BOTÓN VOLVER
+        self.btn_volver = ctk.CTkButton(
+            frm_header,
+            text="⬅ VOLVER AL MENÚ",
+            font=("Arial", 16, "bold"),
+            width=200, height=50,
+            fg_color="#8D6E63", hover_color="#6D4C41",
+            command=self.volver_menu
+        )
+        self.btn_volver.pack(side="left")
+        
+        ctk.CTkLabel(
+            frm_header, 
+            text="CENTRAL DE REPORTES", 
+            font=("Arial", 32, "bold"), 
+            text_color="#5a3b2e"
+        ).pack(side="left", padx=40)
+
+        # ==================================================
+        #           2. PANEL IZQUIERDO: INSTRUCCIONES
+        # ==================================================
+        self.crear_panel_instrucciones(row=1, col=0)
+
+        # ==================================================
+        #           3. PANEL DERECHO: BOTONES
+        # ==================================================
+        self.crear_panel_botones(row=1, col=1)
+
+    def volver_menu(self):
+        if hasattr(self.main_controller, 'volver_menu'):
+            self.main_controller.volver_menu()
+
+    def crear_panel_instrucciones(self, row, col):
+        frame_inst = ctk.CTkFrame(self, fg_color="white", corner_radius=20)
+        frame_inst.grid(row=row, column=col, sticky="nsew", padx=(20, 10), pady=10)
+        
+        ctk.CTkLabel(
+            frame_inst, 
+            text="¿Cómo generar un reporte?", 
+            font=("Arial", 26, "bold"), 
+            text_color="#A7744A"
+        ).pack(pady=(40, 30), padx=20)
+        
+        texto_instrucciones = (
+            "1. Seleccione las fechas 'Desde' y 'Hasta'\n"
+            "   en el reporte que desea consultar.\n\n"
+            "2. Haga clic en el botón 'Descargar PDF'.\n\n"
+            "3. Elija dónde guardar el archivo en su\n"
+            "   computadora.\n\n"
+            "4. El documento se abrirá automáticamente."
+        )
+        
+        lbl_texto = ctk.CTkLabel(
+            frame_inst, 
+            text=texto_instrucciones, 
+            font=("Arial", 22), # Letra Muy Grande
+            text_color="#333333",
+            justify="left"
+        )
+        lbl_texto.pack(pady=10, padx=30, anchor="w")
+        
+        ctk.CTkLabel(frame_inst, text="📄", font=("Arial", 120)).pack(side="bottom", pady=40)
+
+    def crear_panel_botones(self, row, col):
+        # Frame desplazable por si hay muchos reportes
+        frame_btns = ctk.CTkScrollableFrame(self, fg_color="transparent", label_text="")
+        frame_btns.grid(row=row, column=col, sticky="nsew", padx=(10, 20), pady=10)
+        
+        # 1. LIBROS
+        self.crear_tarjeta_reporte(frame_btns, "📚 Inventario de Libros", 
+                                   self.crear_filtros_fecha, self.imprimir_libros)
+
+        # 2. PRÉSTAMOS
+        self.crear_tarjeta_reporte(frame_btns, "⏳ Historial de Préstamos", 
+                                   self.crear_filtros_fecha, self.imprimir_prestamos)
+
+        # 3. LECTORES
+        self.crear_tarjeta_simple(frame_btns, "👥 Directorio de Lectores", 
+                                  "Generar Lista de Usuarios", self.imprimir_lectores)
+
+        # 4. BAJAS
+        self.crear_tarjeta_simple(frame_btns, "🗑️ Libros dados de Baja", 
+                                  "Generar Reporte de Bajas", self.imprimir_bajas)
+
+    # --- UTILIDADES DE DISEÑO ---
+    def crear_tarjeta_reporte(self, parent, titulo, funcion_widgets, comando_btn):
+        card = ctk.CTkFrame(parent, fg_color="white", corner_radius=15)
+        card.pack(fill="x", pady=10, ipadx=10, ipady=10)
+        
+        ctk.CTkLabel(card, text=titulo, font=("Arial", 20, "bold"), text_color="#5a3b2e").pack(pady=10)
+        widgets = funcion_widgets(card)
         
         ctk.CTkButton(
-            self.frm_bajas, 
-            text="Generar PDF de Bajas", 
-            fg_color="#D32F2F", # Rojo para indicar alerta/baja
-            font=("Arial", 14, "bold"),
-            command=self.imprimir_bajas
-        ).pack(side="right", padx=20, pady=20)
+            card, text="DESCARGAR PDF", 
+            font=("Arial", 16, "bold"), height=50,
+            fg_color="#A7744A", hover_color="#8c5e3c",
+            command=lambda: comando_btn(widgets)
+        ).pack(pady=10)
 
-        # Header
-        header = ctk.CTkFrame(self, fg_color="transparent")
-        header.grid(row=0, column=0, columnspan=2, sticky="ew", padx=20, pady=20)
-        ctk.CTkButton(header, text="⬅ Volver", width=80, fg_color="#A7744A", 
-                      command=self.main_controller.volver_menu).pack(side="left")
-        ctk.CTkLabel(header, text="Generación de Reportes", font=("Georgia", 26, "bold"), text_color="#5a3b2e").pack(side="left", padx=20)
-
-        # --- SECCIÓN 1: REPORTE DE LIBROS (ACERVO) ---
-        self.crear_panel_reporte(
-            titulo="Reporte de Libros Registrados",
-            columna=0,
-            comando=self.imprimir_libros,
-            icono="📚"
-        )
-
-        # --- SECCIÓN 2: REPORTE DE PRÉSTAMOS ---
-        self.crear_panel_reporte(
-            titulo="Reporte de Préstamos Realizados",
-            columna=1,
-            comando=self.imprimir_prestamos,
-            icono="📑"
-        )
-
-    def crear_panel_reporte(self, titulo, columna, comando, icono):
-        frame = ctk.CTkFrame(self, fg_color="white", corner_radius=15)
-        frame.grid(row=1, column=columna, sticky="nsew", padx=20, pady=20)
+    def crear_tarjeta_simple(self, parent, titulo, texto_btn, comando_btn):
+        card = ctk.CTkFrame(parent, fg_color="white", corner_radius=15)
+        card.pack(fill="x", pady=10, ipadx=10, ipady=10)
         
-        ctk.CTkLabel(frame, text=icono, font=("Arial", 50)).pack(pady=(30,10))
-        ctk.CTkLabel(frame, text=titulo, font=("Georgia", 18, "bold"), text_color="#A7744A").pack(pady=10)
+        ctk.CTkLabel(card, text=titulo, font=("Arial", 20, "bold"), text_color="#5a3b2e").pack(pady=10)
         
-        # Filtros de Fecha
-        frm_fechas = ctk.CTkFrame(frame, fg_color="transparent")
-        frm_fechas.pack(pady=20)
-        
-        # Fecha Inicio
-        ctk.CTkLabel(frm_fechas, text="Desde:", font=("Arial", 12, "bold")).grid(row=0, column=0, padx=5)
-        mes_ini = ctk.CTkComboBox(frm_fechas, values=[str(i) for i in range(1,13)], width=60)
-        mes_ini.set("1")
-        mes_ini.grid(row=0, column=1, padx=2)
-        anio_ini = ctk.CTkComboBox(frm_fechas, values=["2024", "2025", "2026"], width=70)
-        anio_ini.set("2025")
-        anio_ini.grid(row=0, column=2, padx=2)
+        ctk.CTkButton(
+            card, text=texto_btn.upper(), 
+            font=("Arial", 16, "bold"), height=50,
+            fg_color="#A7744A", hover_color="#8c5e3c",
+            command=comando_btn
+        ).pack(pady=10)
 
-        # Fecha Fin
-        ctk.CTkLabel(frm_fechas, text="Hasta:", font=("Arial", 12, "bold")).grid(row=1, column=0, padx=5, pady=10)
-        mes_fin = ctk.CTkComboBox(frm_fechas, values=[str(i) for i in range(1,13)], width=60)
-        mes_fin.set(str(datetime.now().month))
-        mes_fin.grid(row=1, column=1, padx=2, pady=10)
-        anio_fin = ctk.CTkComboBox(frm_fechas, values=["2024", "2025", "2026"], width=70)
-        anio_fin.set("2025")
-        anio_fin.grid(row=1, column=2, padx=2, pady=10)
-
-        # Guardar referencias para usarlas en el comando
-        if "Libros" in titulo:
-            self.widgets_libros = (mes_ini, anio_ini, mes_fin, anio_fin)
-        else:
-            self.widgets_prestamos = (mes_ini, anio_ini, mes_fin, anio_fin)
-
-        # Botón Imprimir
-        ctk.CTkButton(frame, text="Guardar PDF...", fg_color="#2E7D32", height=40, font=("Arial", 14, "bold"),
-                      command=comando).pack(pady=30, padx=40, fill="x")
-
-    def imprimir_libros(self):
-        mi, ai, mf, af = [w.get() for w in self.widgets_libros]
+    def crear_filtros_fecha(self, parent):
+        f = ctk.CTkFrame(parent, fg_color="#F9F5EB")
+        f.pack(pady=5)
+        meses = [str(i).zfill(2) for i in range(1, 13)]
+        anios = [str(i) for i in range(2023, 2030)]
         
-        nombre_default = f"Reporte_Libros_{mi}-{ai}_al_{mf}-{af}.pdf"
-        ruta = filedialog.asksaveasfilename(
-            title="Guardar Reporte de Libros",
-            defaultextension=".pdf",
-            initialfile=nombre_default,
-            filetypes=[("Archivos PDF", "*.pdf")]
-        )
+        ctk.CTkLabel(f, text="Desde:", font=("Arial", 14)).pack(side="left", padx=5)
+        mi = ctk.CTkComboBox(f, values=meses, width=70, font=("Arial", 14)); mi.pack(side="left", padx=2); mi.set("01")
+        ai = ctk.CTkComboBox(f, values=anios, width=80, font=("Arial", 14)); ai.pack(side="left", padx=2); ai.set("2024")
         
-        if ruta:
-            self.reportes_ctrl.generar_reporte_registros(mi, ai, mf, af, ruta)
+        ctk.CTkLabel(f, text=" Hasta:", font=("Arial", 14)).pack(side="left", padx=10)
+        mf = ctk.CTkComboBox(f, values=meses, width=70, font=("Arial", 14)); mf.pack(side="left", padx=2); mf.set("12")
+        af = ctk.CTkComboBox(f, values=anios, width=80, font=("Arial", 14)); af.pack(side="left", padx=2); af.set("2024")
+        return (mi, ai, mf, af)
 
-    def imprimir_prestamos(self):
-        mi, ai, mf, af = [w.get() for w in self.widgets_prestamos]
-        
-        nombre_default = f"Reporte_Prestamos_{mi}-{ai}_al_{mf}-{af}.pdf"
-        ruta = filedialog.asksaveasfilename(
-            title="Guardar Reporte de Préstamos",
-            defaultextension=".pdf",
-            initialfile=nombre_default,
-            filetypes=[("Archivos PDF", "*.pdf")]
-        )
-        
-        if ruta:
-            self.reportes_ctrl.generar_reporte_prestamos(mi, ai, mf, af, ruta)
+    # --- FUNCIONES DE IMPRESIÓN ---
+    def imprimir_libros(self, widgets):
+        mi, ai, mf, af = [w.get() for w in widgets]
+        self.guardar_pdf(f"Libros_{mi}-{ai}", lambda r: self.reportes_ctrl.generar_reporte_registros(mi, ai, mf, af, r))
+
+    def imprimir_prestamos(self, widgets):
+        mi, ai, mf, af = [w.get() for w in widgets]
+        self.guardar_pdf(f"Prestamos_{mi}-{ai}", lambda r: self.reportes_ctrl.generar_reporte_prestamos(mi, ai, mf, af, r))
+
+    def imprimir_lectores(self):
+        self.guardar_pdf("Lista_Lectores", self.reportes_ctrl.generar_reporte_solicitantes)
 
     def imprimir_bajas(self):
-        nombre_default = f"Reporte_Libros_Baja_{datetime.now().strftime('%Y-%m-%d')}.pdf"
-        ruta = filedialog.asksaveasfilename(
-            title="Guardar Reporte de Bajas",
-            defaultextension=".pdf",
-            initialfile=nombre_default,
-            filetypes=[("Archivos PDF", "*.pdf")]
-        )
-        
+        self.guardar_pdf("Bajas", self.reportes_ctrl.generar_reporte_bajas)
+
+    def guardar_pdf(self, nombre_base, funcion_generadora):
+        ruta = filedialog.asksaveasfilename(defaultextension=".pdf", initialfile=f"{nombre_base}.pdf")
         if ruta:
-            # Llamamos al nuevo método del controlador
-            self.reportes_ctrl.generar_reporte_bajas(ruta)
+            try:
+                funcion_generadora(ruta)
+                messagebox.showinfo("Éxito", "Reporte generado correctamente.")
+            except Exception as e:
+                messagebox.showerror("Error", f"No se pudo generar el reporte:\n{e}")

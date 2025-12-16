@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import sys
-
+from PIL import Image
+import os
 class FrmLogin(ctk.CTkFrame):
     def __init__(self, master, controller=None):
         super().__init__(master)
@@ -18,15 +19,35 @@ class FrmLogin(ctk.CTkFrame):
             fg_color="#F3E7D2" # Color Beige
         )
         self.card.place(relx=0.5, rely=0.5, anchor="center")
+        ruta_logo = os.path.join("resources", "logo.png") 
+        
+        try:
+            # 1. Cargamos la imagen y la guardamos en SELF (self.logo_img)
+            # Si no usas 'self.', Python la borra de la memoria y se ve vacía.
+            self.logo_img = ctk.CTkImage(
+                light_image=Image.open(ruta_logo), 
+                size=(120, 120) # Ajusta el tamaño a tu gusto
+            )
 
-        # Título Principal
+            # 2. Creamos el label usando esa imagen guardada en self
+            self.lbl_logo = ctk.CTkLabel(self.card, image=self.logo_img, text="")
+            self.lbl_logo.place(relx=0.5, y=40, anchor="n") # Ajustamos posición
+            
+            # (Opcional) Si pones logo, baja un poco el título para que no se encimen:
+            ajuste_y = 110 
+        except Exception as e:
+            print(f"No se pudo cargar el logo: {e}")
+            ajuste_y = 0
+
+        # Título Principal (Modifiqué 'y' para dar espacio al logo)
         self.lbl_titulo = ctk.CTkLabel(
             self.card, 
             text="BIBLIOTECA", 
-            font=("Georgia", 36, "bold"), # Aumentado de 22 a 36px
+            font=("Georgia", 36, "bold"),
             text_color="#5a3b2e"
         )
-        self.lbl_titulo.place(relx=0.5, y=35, anchor="n")
+        # Si usaste el logo, cambia y=35 por y=(35 + ajuste_y) o un valor fijo como 160
+        self.lbl_titulo.place(relx=0.5, y=35 + ajuste_y, anchor="n")
 
         # Subtítulo
         self.lbl_sub = ctk.CTkLabel(

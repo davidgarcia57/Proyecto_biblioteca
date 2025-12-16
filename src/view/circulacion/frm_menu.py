@@ -5,7 +5,6 @@ from tkinter import messagebox
 from PIL import Image
 from src.model.Estadisticas import Estadisticas
 from src.utils import resource_path
-
 class FrmMenuPrincipal(ctk.CTkFrame):
     def __init__(self, master, controller=None):
         super().__init__(master)

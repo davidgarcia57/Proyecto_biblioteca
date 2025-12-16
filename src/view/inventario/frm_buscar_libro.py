@@ -102,7 +102,29 @@ class FrmBuscarLibro(ctk.CTkFrame):
             command=self.evento_agregar
         )
         self.btn_agregar.grid(row=1, column=2, padx=10)
-            
+        self.btn_agregar = ctk.CTkButton(
+            frame_busqueda,
+            text="➕ Nuevo",
+            width=120,
+            height=50,
+            fg_color="#2E7D32",
+            hover_color="#1B5E20",
+            font=("Arial", 16, "bold"),
+            command=self.evento_agregar
+        )
+        self.btn_agregar.grid(row=1, column=2, padx=10)
+        
+        # ==========================================
+        
+        # <--- NUEVO: Etiqueta de instrucción visual
+        self.lbl_tip = ctk.CTkLabel(
+            frame_busqueda, 
+            text="💡 Tip: Haz doble clic sobre un libro para editar sus datos", 
+            text_color="#555555",  # Gris oscuro para que se lea bien sobre beige
+            font=("Arial", 30, "italic")
+        )
+        # Lo ponemos en la fila 2 (debajo de los botones) y que ocupe las 3 columnas
+        self.lbl_tip.grid(row=2, column=0, columnspan=3, pady=(15, 0))
     def crear_tabla_resultados(self):
         # Frame contenedor
         frame_tabla = ctk.CTkFrame(self, fg_color="white") # Fondo blanco para la tabla

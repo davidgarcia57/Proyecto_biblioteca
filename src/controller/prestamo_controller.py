@@ -63,7 +63,7 @@ class PrestamoController:
     # =========================================================================
 
     def verificar_libro(self, id_ejemplar):
-        res = Ejemplar.verificar_estado(id_ejemplar)
+        res = Ejemplar.actualizar_estado(id_ejemplar)
         if res:
             titulo, estado = res
             is_ok = (estado == 'Disponible')

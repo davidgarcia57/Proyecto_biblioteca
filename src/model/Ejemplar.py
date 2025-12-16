@@ -76,19 +76,28 @@ class Ejemplar:
     
     @staticmethod
     def obtener_por_fecha(fecha_inicio, fecha_fin):
-        from src.config.conexion_db import ConexionBD # Import local para evitar ciclos
+        from src.config.conexion_db import ConexionBD
         db = ConexionBD()
         conn = db.conectar()
         datos = []
         if conn:
             try:
                 cursor = conn.cursor()
+                # MODIFICADO: Ahora trae Autor y Clasificación
                 sql = """
-                    SELECT e.id_ejemplar, o.titulo, o.isbn, e.fecha_adquisicion
+                    SELECT 
+                        e.numero_copia,  -- Adquisición
+                        o.titulo, 
+                        a.nombre_completo, -- Autor
+                        o.clasificacion, 
+                        e.fecha_adquisicion
                     FROM ejemplares e
                     JOIN obras o ON e.id_obra = o.id_obra
+                    LEFT JOIN autores_obras ao ON o.id_obra = ao.id_obra
+                    LEFT JOIN autores a ON ao.id_autor = a.id_autor
                     WHERE e.fecha_adquisicion BETWEEN %s AND %s
                     AND e.estado != 'Baja'
+                    GROUP BY e.id_ejemplar  -- Evita duplicados si tiene varios autores
                     ORDER BY e.fecha_adquisicion DESC
                 """
                 cursor.execute(sql, (fecha_inicio, fecha_fin))
@@ -120,28 +129,32 @@ class Ejemplar:
         return datos
 
     # --- MÉTODO PARA VALIDACIÓN EN PRÉSTAMOS ---
-    @staticmethod
-    def verificar_estado(id_ejemplar):
-        """
-        Retorna (titulo, estado) si existe, o None.
-        Usado por PrestamoController para validar antes de prestar.
-        """
+    def actualizar_estado(self, nuevo_estado):
         db = ConexionBD()
         conn = db.conectar()
-        resultado = None
+        exito = False
         if conn:
             try:
                 cursor = conn.cursor()
-                sql = """
-                    SELECT o.titulo, e.estado 
-                    FROM ejemplares e 
-                    JOIN obras o ON e.id_obra = o.id_obra 
-                    WHERE e.id_ejemplar = %s
-                """
-                cursor.execute(sql, (id_ejemplar,))
-                resultado = cursor.fetchone()
+                # Solo actualiza SI el estado actual es 'Disponible' (para préstamos)
+                if nuevo_estado == 'Prestado':
+                    sql = "UPDATE ejemplares SET estado = %s WHERE id_ejemplar = %s AND estado = 'Disponible'"
+                else:
+                    # Para devoluciones, no hay problema
+                    sql = "UPDATE ejemplares SET estado = %s WHERE id_ejemplar = %s"
+                
+                cursor.execute(sql, (nuevo_estado, self.id_ejemplar))
+                conn.commit()
+                
+                # Verificamos si se actualizó alguna fila
+                if cursor.rowcount > 0:
+                    self.estado = nuevo_estado
+                    exito = True
+                else:
+                    print("El libro ya no estaba disponible.")
+                    exito = False
             except Exception as e:
-                print(f"Error al verificar ejemplar: {e}")
+                print(f"Error actualizar estado: {e}")
             finally:
                 conn.close()
-        return resultado
+        return exito

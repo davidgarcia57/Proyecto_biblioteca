@@ -58,7 +58,7 @@ class Obra:
     @staticmethod
     def buscar_por_termino(cursor, termino):
         termino_like = f"%{termino}%"
-        # OJO AL ORDEN DE ESTE SELECT, debe coincidir con la vista
+        
         sql = """
             SELECT 
                 o.id_obra, 
@@ -74,10 +74,16 @@ class Obra:
             LEFT JOIN autores a ON ao.id_autor = a.id_autor
             LEFT JOIN editoriales e ON o.id_editorial = e.id_editorial
             WHERE (o.titulo LIKE %s OR o.isbn LIKE %s OR a.nombre_completo LIKE %s)
+            
+            -- AGREGAMOS ESTA CONDICIÓN PARA FILTRAR LOS DADOS DE BAJA:
+            AND EXISTS (
+                SELECT 1 FROM ejemplares ej_filtro 
+                WHERE ej_filtro.id_obra = o.id_obra 
+                AND ej_filtro.estado != 'Baja'
+            )
+            
             GROUP BY o.id_obra
         """
-        # Nota: Quité "AND ejm.estado != 'Baja'" del WHERE principal porque 
-        # queremos ver el libro aunque todos sus ejemplares estén de baja (aparecerá 0 de 0).
         
         cursor.execute(sql, (termino_like, termino_like, termino_like))
         return cursor.fetchall()

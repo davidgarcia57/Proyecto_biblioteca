@@ -1,5 +1,6 @@
 from src.view.login.frm_login import FrmLogin
 from src.model.Usuario import Usuario
+import hashlib
 
 class LoginController:
     def __init__(self, view_container, app_main):
@@ -8,13 +9,14 @@ class LoginController:
         self.view = FrmLogin(view_container, self)
 
     def validar_credenciales(self, usuario, password):
-        # 1. Validación básica (Lógica de Controlador)
+        
         if not usuario or not password:
             self.view.mostrar_error("Ingrese usuario y contraseña.")
             return
 
-        # 2. Llamada al Modelo (El modelo maneja la conexión interna en este caso simple)
-        usuario_obj = Usuario.autenticar(usuario, password)
+        pass_hash = hashlib.sha256(password.encode()).hexdigest()
+
+        usuario_obj = Usuario.autenticar(usuario, pass_hash)
 
         if usuario_obj:
             if usuario_obj.activo == 1:

@@ -116,3 +116,18 @@ class Solicitante:
             finally:
                 conn.close()
         return resultados
+    @staticmethod
+    def obtener_todos_reporte():
+        """Retorna lista para el reporte PDF"""
+        db = ConexionBD()
+        conn = db.conectar()
+        datos = []
+        if conn:
+            try:
+                cursor = conn.cursor()
+                sql = "SELECT id_prestatario, nombre_completo, telefono, email, direccion FROM solicitantes ORDER BY nombre_completo"
+                cursor.execute(sql)
+                datos = cursor.fetchall()
+            finally:
+                conn.close()
+        return datos

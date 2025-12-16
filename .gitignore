@@ -6,3 +6,6 @@ dist/
 # Archivos temporales de Python (por si acaso)
 __pycache__/
 *.pyc
+
+# Archivos de configuración con claves secretas
+config.ini

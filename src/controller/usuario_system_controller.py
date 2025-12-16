@@ -1,7 +1,7 @@
 from src.view.admin.frm_usuarios_sistema import FrmUsuariosSistema
 from src.model.Usuario import Usuario
 from tkinter import messagebox
-
+import hashlib
 class UsuarioSystemController:
     def __init__(self, view_container, on_close=None):
         self.view_container = view_container
@@ -46,22 +46,29 @@ class UsuarioSystemController:
         if not id_actual and not p1:
             messagebox.showerror("Error", "Debe asignar una contraseña al nuevo usuario.")
             return
+        
+        # --- 4. ENCRIPTACIÓN (AQUÍ ESTÁ LA MAGIA) --- # <--- NUEVO BLOQUE
+        pass_final = None
+        if p1:
+            # Convertimos "hola" -> "d3018..." (SHA-256)
+            pass_final = hashlib.sha256(p1.encode()).hexdigest()
+        # ----------------------------------------------
 
         # --- CREACIÓN DEL MODELO ---
         nuevo_user = Usuario(
             id_usuario=id_actual,
             nombre=datos["nombre"],
             usuario=datos["usuario"],
-            password_hash=p1, # El modelo sabrá si guardarla o ignorarla (si está vacía en edición)
+            password_hash=pass_final, # El modelo sabrá si guardarla o ignorarla (si está vacía en edición)
             rol=datos["rol"],
             activo=datos["activo"]
         )
 
         # --- PERSISTENCIA ---
         if nuevo_user.guardar():
-            # Si es edición y hubo cambio de contraseña, la actualizamos explícitamente
-            if id_actual and p1:
-                Usuario.cambiar_password(id_actual, p1)
+            # Si es edición y hubo cambio de contraseña, actualizamos con el HASH
+            if id_actual and pass_final:
+                Usuario.cambiar_password(id_actual, pass_final) 
                 
             messagebox.showinfo("Éxito", "Usuario guardado correctamente")
             self.view.limpiar_formulario()
