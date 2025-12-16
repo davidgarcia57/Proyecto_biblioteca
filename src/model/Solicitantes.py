@@ -60,16 +60,19 @@ class Solicitante:
     
     @staticmethod
     def eliminar(id_prestatario):
-        db = ConexionBD()
-        conn = db.conectar()
+        conexion = ConexionBD()
+        conn = conexion.conectar()
         if conn:
             try:
                 cursor = conn.cursor()
-                cursor.execute("DELETE FROM solicitantes WHERE id_prestatario = %s", (id_prestatario,))
+                # Intentamos borrar. Si tiene préstamos (claves foráneas), esto fallará.
+                sql = "DELETE FROM solicitantes WHERE id_prestatario = %s"
+                cursor.execute(sql, (id_prestatario,))
                 conn.commit()
                 return True
             except Exception as e:
-                print(f"Error al eliminar: {e}")
+                # Si falla (generalmente por error 1451: foreign key constraint)
+                print(f"No se pudo eliminar: {e}")
                 return False
             finally:
                 conn.close()

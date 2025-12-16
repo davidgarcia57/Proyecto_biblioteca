@@ -20,7 +20,7 @@ class PopupFicha(ctk.CTkToplevel):
 
         self.frm_header = ctk.CTkFrame(self, fg_color="transparent")
         self.frm_header.pack(fill="x", padx=20, pady=(20,5))
-        }
+        
         self.entries['titulo'] = ctk.CTkEntry(self.frm_header, font=("Georgia", 20, "bold"), 
                                               fg_color=self.cget("fg_color"), 
                                               border_width=0, width=600)
