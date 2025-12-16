@@ -1,38 +1,32 @@
 import customtkinter as ctk
 from tkinter import ttk, messagebox
-# Eliminamos la importación de PIL e Image ya que quitaremos el avatar para ganar espacio
-# import os 
-# from PIL import Image 
 
 class FrmUsuariosSistema(ctk.CTkFrame):
     def __init__(self, master, controller):
         super().__init__(master)
         self.controller = controller
         
-        # --- Configuración Principal ---
+        #COnfig Principal
         self.configure(fg_color="#F3E7D2") # Beige de fondo
         
-        # Grid Principal
         self.grid_columnconfigure(0, weight=0) 
         self.grid_columnconfigure(1, weight=1) 
         self.grid_rowconfigure(1, weight=1)
 
         self.id_actual = None 
 
-        # --- HEADER ---
         self.crear_header()
 
-        # --- PANEL IZQUIERDO: FORMULARIO ---
+        # PANEL IZQUIERDO: FORMULARIO
         self.crear_panel_formulario()
 
-        # --- PANEL DERECHO: TABLA ---
+        # PANEL DERECHO: TABLA
         self.crear_panel_tabla()
 
     def crear_header(self):
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.grid(row=0, column=0, columnspan=2, sticky="ew", padx=20, pady=(15, 10))
         
-        # Botón Volver Grande
         ctk.CTkButton(
             header, 
             text="⬅ Volver", 
@@ -52,7 +46,6 @@ class FrmUsuariosSistema(ctk.CTkFrame):
         ).pack(side="left", padx=20)
 
     def crear_panel_formulario(self):
-        # Usamos CTkScrollableFrame
         self.p_form = ctk.CTkScrollableFrame(
             self, 
             width=380,
@@ -66,13 +59,6 @@ class FrmUsuariosSistema(ctk.CTkFrame):
         )
         self.p_form.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
         
-        # --- SECCIÓN AVATAR ELIMINADA PARA QUITAR ESPACIO EN BLANCO ---
-        # Antes aquí había un frame reservando espacio para la imagen.
-        # Al quitarlo, el primer input subirá automáticamente.
-
-        # --- INPUTS (Grandes y Accesibles) ---
-        
-        # Agregamos un poco de padding superior (pady) al primer elemento para que no se pegue al título
         self.entry_nombre = self.crear_input("Nombre Real (Personal)", pady_top=15) 
         self.entry_user = self.crear_input("Usuario (Login)")
         
@@ -82,7 +68,6 @@ class FrmUsuariosSistema(ctk.CTkFrame):
         self.entry_pass = self.crear_input("Nueva Contraseña", is_pass=True)
         self.entry_pass_conf = self.crear_input("Confirmar Contraseña", is_pass=True)
         
-        # Rol
         ctk.CTkLabel(self.p_form, text="Rol y Permisos:", font=("Arial", 14, "bold"), text_color="gray", anchor="w").pack(fill="x", padx=25, pady=(15,5))
         
         self.combo_rol = ctk.CTkComboBox(
@@ -96,7 +81,7 @@ class FrmUsuariosSistema(ctk.CTkFrame):
         )
         self.combo_rol.pack(fill="x", padx=20, pady=5)
         
-        # Switch Activo
+        # Cuenta activa
         self.chk_activo = ctk.CTkSwitch(
             self.p_form, 
             text="Cuenta Activa", 
@@ -108,7 +93,7 @@ class FrmUsuariosSistema(ctk.CTkFrame):
         self.chk_activo.pack(pady=20)
         self.chk_activo.select()
 
-        # --- BOTONES DE ACCIÓN ---
+        # BOTONES DE ACCIÓN
         self.btn_guardar = ctk.CTkButton(
             self.p_form, 
             text="💾 Guardar Usuario", 
@@ -214,7 +199,7 @@ class FrmUsuariosSistema(ctk.CTkFrame):
         e.pack(fill="x", padx=20, pady=5)
         return e
 
-    # --- LÓGICA / INTERACCIÓN ---
+    # Interaccion
 
     def limpiar_tabla(self):
         for item in self.tree.get_children():

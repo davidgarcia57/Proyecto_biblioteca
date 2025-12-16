@@ -16,10 +16,7 @@ class Prestamo:
         self.estado = estado 
 
     def guardar(self, conn):
-        """
-        Registra el préstamo y actualiza el estado del ejemplar.
-        NOTA: Recibe 'conn' porque esto debe ser parte de una transacción controlada por el controller.
-        """
+
         cursor = conn.cursor()
         
         # 1. Insertar el préstamo
@@ -46,7 +43,6 @@ class Prestamo:
 
     @staticmethod
     def finalizar_prestamo(conn, id_prestamo, id_ejemplar):
-        """ Registra la devolución y libera el libro """
         cursor = conn.cursor()
         
         # 1. Actualizar préstamo
@@ -65,7 +61,6 @@ class Prestamo:
         if conn:
             try:
                 cursor = conn.cursor()
-                # OJO: Agregamos p.id_ejemplar al final
                 sql = """
                     SELECT p.id_prestamo, s.nombre_completo, o.titulo, p.fecha_devolucion_esperada, p.id_ejemplar
                     FROM prestamos p
@@ -89,7 +84,6 @@ class Prestamo:
         if conn:
             try:
                 cursor = conn.cursor()
-                # Trae todo: Libro, Solicitante, Fechas
                 sql = """
                     SELECT p.id_prestamo, o.titulo, s.nombre_completo, s.telefono, p.fecha_prestamo, p.estado
                     FROM prestamos p

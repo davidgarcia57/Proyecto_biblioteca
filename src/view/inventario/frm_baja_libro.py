@@ -6,18 +6,14 @@ class FrmBajaLibro(ctk.CTkFrame):
         super().__init__(master)
         self.controller = controller
         
-        # --- 1. CONFIGURACIÓN GENERAL (ESTILO VISITAS) ---
         self.configure(fg_color="#F3E7D2") # Fondo Beige
         
-        # Grid: 50% Operación (Izquierda) | 50% Ayuda (Derecha)
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(1, weight=1)
 
-        # --- 2. HEADER ---
         self.crear_header()
 
-        # --- 3. PANELES ---
         self.crear_panel_izquierdo()
         self.crear_panel_derecho()
 
@@ -25,7 +21,6 @@ class FrmBajaLibro(ctk.CTkFrame):
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.grid(row=0, column=0, columnspan=2, sticky="ew", padx=30, pady=(20, 10))
         
-        # Botón Volver Gigante
         btn_volver = ctk.CTkButton(
             header, 
             text="⬅ VOLVER AL MENÚ", 
@@ -36,7 +31,6 @@ class FrmBajaLibro(ctk.CTkFrame):
         )
         btn_volver.pack(side="left")
         
-        # Título Gigante
         lbl_titulo = ctk.CTkLabel(
             header, 
             text="GESTIÓN DE BAJAS DE LIBROS", 
@@ -46,14 +40,12 @@ class FrmBajaLibro(ctk.CTkFrame):
         lbl_titulo.pack(side="left", padx=40)
 
     def crear_panel_izquierdo(self):
-        # Frame Blanco Redondeado
+
         p_izq = ctk.CTkFrame(self, fg_color="white", corner_radius=20)
         p_izq.grid(row=1, column=0, sticky="nsew", padx=(30, 15), pady=20)
         
-        # Título Sección
         ctk.CTkLabel(p_izq, text="Buscar Ejemplar", font=("Arial", 22, "bold"), text_color="#A7744A").pack(pady=(30, 10))
 
-        # Input ID (Grande)
         self.entry_id = ctk.CTkEntry(
             p_izq, 
             placeholder_text="Escanee o escriba el ID...", 
@@ -62,7 +54,7 @@ class FrmBajaLibro(ctk.CTkFrame):
             justify="center"
         )
         self.entry_id.pack(fill="x", padx=40, pady=10)
-        self.entry_id.bind("<Return>", self.buscar) # Al dar Enter busca
+        self.entry_id.bind("<Return>", self.buscar)
 
         # Botón Buscar
         ctk.CTkButton(
@@ -72,8 +64,7 @@ class FrmBajaLibro(ctk.CTkFrame):
             command=self.buscar
         ).pack(fill="x", padx=40, pady=10)
 
-        # --- SECCIÓN DE RESULTADOS ---
-        ctk.CTkFrame(p_izq, height=2, fg_color="#Decdbb").pack(fill="x", padx=40, pady=20) # Separador
+        ctk.CTkFrame(p_izq, height=2, fg_color="#Decdbb").pack(fill="x", padx=40, pady=20)
 
         self.lbl_info_titulo = ctk.CTkLabel(p_izq, text="Esperando búsqueda...", font=("Arial", 18, "bold"), text_color="gray")
         self.lbl_info_titulo.pack(pady=5)
@@ -81,14 +72,13 @@ class FrmBajaLibro(ctk.CTkFrame):
         self.lbl_info_estado = ctk.CTkLabel(p_izq, text="", font=("Arial", 16))
         self.lbl_info_estado.pack(pady=5)
 
-        # Botón Confirmar Baja (Rojo Gigante)
         self.btn_confirmar = ctk.CTkButton(
             p_izq, 
             text="🗑️ CONFIRMAR BAJA", 
             height=60,
-            fg_color="#D32F2F", hover_color="#B71C1C", # Rojo
+            fg_color="#D32F2F", hover_color="#B71C1C",
             font=("Arial", 20, "bold"),
-            state="disabled", # Empieza desactivado
+            state="disabled",
             command=self.confirmar
         )
         self.btn_confirmar.pack(side="bottom", fill="x", padx=40, pady=40)
@@ -97,7 +87,6 @@ class FrmBajaLibro(ctk.CTkFrame):
         p_der = ctk.CTkFrame(self, fg_color="white", corner_radius=20, border_color="#Decdbb", border_width=2)
         p_der.grid(row=1, column=1, sticky="nsew", padx=(15, 30), pady=20)
         
-        # Contenedor para centrar contenido
         container = ctk.CTkFrame(p_der, fg_color="transparent")
         container.pack(expand=True, fill="both", padx=20)
 
@@ -123,10 +112,7 @@ class FrmBajaLibro(ctk.CTkFrame):
             justify="center"
         ).pack(anchor="center")
 
-        # Icono visual grande abajo
         ctk.CTkLabel(container, text="📚 ❌ 🗑️", font=("Arial", 60)).pack(side="bottom", pady=40)
-
-    # --- LÓGICA (Adaptada al nuevo diseño) ---
 
     def buscar(self, event=None):
         id_libro = self.entry_id.get()

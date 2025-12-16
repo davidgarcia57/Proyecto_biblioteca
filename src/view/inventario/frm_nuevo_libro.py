@@ -19,16 +19,10 @@ class FrmNuevoLibro(ctk.CTkFrame):
         self.current_step = 0
         self.steps = [] 
 
-        # --- 1. HEADER (Arriba) ---
         self.crear_header()
 
-        # --- 2. FOOTER (Abajo) --- 
-        # ¡IMPORTANTE! Lo creamos y empaquetamos AHORA para que reserve su espacio al fondo
-        # antes de que el contenedor central ocupe todo el resto.
         self.crear_footer()
 
-        # --- 3. CONTENEDOR DE PASOS (Centro) ---
-        # Ahora sí, este frame llenará el espacio "sándwich" entre el header y el footer
         self.container = ctk.CTkFrame(self, fg_color="transparent")
         self.container.pack(fill="both", expand=True, padx=40, pady=10)
 
@@ -78,11 +72,9 @@ class FrmNuevoLibro(ctk.CTkFrame):
         self.lbl_paginacion.pack(side="right", anchor="s")
 
     def crear_footer(self):
-        # Usamos side="bottom" para pegarlo abajo
         footer = ctk.CTkFrame(self, fg_color="transparent", height=100)
         footer.pack(side="bottom", fill="x", padx=40, pady=30)
 
-        # Botón Atrás/Cancelar GIGANTE
         self.btn_atras = ctk.CTkButton(
             footer, 
             text="Cancelar", 
@@ -95,7 +87,6 @@ class FrmNuevoLibro(ctk.CTkFrame):
         )
         self.btn_atras.pack(side="left")
 
-        # Botón Siguiente GIGANTE
         self.btn_siguiente = ctk.CTkButton(
             footer, 
             text="Siguiente ➡", 
@@ -108,7 +99,6 @@ class FrmNuevoLibro(ctk.CTkFrame):
         )
         self.btn_siguiente.pack(side="right")
         
-        # Mensaje centrado y GRANDE
         self.lbl_mensaje = ctk.CTkLabel(
             footer, 
             text="", 

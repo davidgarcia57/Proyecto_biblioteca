@@ -24,7 +24,7 @@ class Usuario:
                 if row:
                     usuario_obj = Usuario(row[0], row[1], row[2], None, row[3], row[4])
             finally:
-                conn.close() # Importante: cerrar conexión usando el método del conector o db.cerrar() si lo implementaste
+                conn.close()
         return usuario_obj
 
     def guardar(self):
@@ -35,11 +35,9 @@ class Usuario:
             try:
                 cursor = conn.cursor()
                 if self.id_usuario:
-                    # ACTUALIZAR (Sin contraseña por seguridad, eso se haría aparte)
                     sql = "UPDATE usuarios_sistema SET nombre=%s, usuario=%s, rol=%s, activo=%s WHERE id_usuario=%s"
                     cursor.execute(sql, (self.nombre, self.usuario, self.rol, self.activo, self.id_usuario))
                 else:
-                    # INSERTAR NUEVO
                     sql = "INSERT INTO usuarios_sistema (nombre, usuario, password_hash, rol, activo) VALUES (%s, %s, %s, %s, %s)"
                     cursor.execute(sql, (self.nombre, self.usuario, self.password_hash, self.rol, self.activo))
                 conn.commit()
@@ -53,7 +51,6 @@ class Usuario:
 
     @staticmethod
     def obtener_todos():
-        """Lista para la tabla de administración"""
         db = ConexionBD()
         conn = db.conectar()
         lista = []
@@ -69,7 +66,6 @@ class Usuario:
 
     @staticmethod
     def cambiar_password(id_usuario, nueva_pass):
-        """Método específico para resetear contraseña"""
         db = ConexionBD()
         conn = db.conectar()
         if conn:
@@ -84,7 +80,6 @@ class Usuario:
     
     @staticmethod
     def eliminar(id_usuario):
-        """Elimina un usuario de la base de datos"""
         db = ConexionBD()
         conn = db.conectar()
         if conn:

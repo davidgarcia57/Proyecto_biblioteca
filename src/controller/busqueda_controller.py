@@ -39,27 +39,22 @@ class BusquedaController:
         if self.on_add_book:
             self.on_add_book()
 
-    # =========================================================================
-    #  NUEVA LÓGICA: FICHA TÉCNICA Y GESTIÓN
-    # =========================================================================
+    # Ficha tecnica y gestion
     def abrir_ficha_libro(self, id_obra):
         # 1. Obtener datos
         data = Obra.obtener_detalle_completo(id_obra)
         if not data: return
 
-        # --- FUNCIÓN 1: GUARDAR EDICIÓN ---
         def guardar_cambios_obra(datos_nuevos):
             conn = self.db.conectar()
             if conn:
                 try:
                     cursor = conn.cursor()
-                    # Creamos un objeto Obra temporal para usar su método guardar/actualizar
-                    # O usamos un método estático si preferimos. 
                     # Aquí instanciamos para facilitar el pase de argumentos
                     obra_tmp = Obra(
                         id_obra=datos_nuevos['id_obra'],
                         titulo=datos_nuevos['titulo'],
-                        id_editorial=None, # No editamos esto por ahora
+                        id_editorial=None, # No editamos esto
                         isbn=datos_nuevos['isbn'],
                         idioma=datos_nuevos['idioma'],
                         anio_publicacion=datos_nuevos['anio'],
@@ -85,7 +80,7 @@ class BusquedaController:
                 finally:
                     conn.close()
 
-        # --- FUNCIÓN 2: VALIDACIÓN ROBUSTA DE BAJA ---
+        # Validacion de baja
         def callback_baja(id_ejemplar, estado_actual, etiqueta_copia):
             # 1. Validación de Estado
             if estado_actual == 'Prestado':

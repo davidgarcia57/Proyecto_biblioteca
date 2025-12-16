@@ -5,14 +5,9 @@ from src.controller.solicitante_controller import SolicitanteController
 from src.controller.prestamo_controller import PrestamoController
 from src.controller.usuario_system_controller import UsuarioSystemController
 from src.controller.visitas_controller import VisitasController
-
-# Importamos las vistas que no tienen un controlador complejo propio
-# o que se usan como "sub-vistas" simples.
 from src.view.circulacion.frm_menu import FrmMenuPrincipal
 from src.view.inventario.frm_baja_libro import FrmBajaLibro
 from src.view.reportes.frm_generar_reportes import FrmGenerarReportes
-# FrmListaPrestamos ya no se importa aquí necesariamente si el controlador la maneja,
-# pero no hace daño dejarla si se usa en algún tipo de chequeo.
 
 class ControladorNavegacionSimple:
     """
@@ -132,7 +127,7 @@ class Router:
         # Se lo pasamos al controlador
         controller = UsuarioSystemController(
             self.container, 
-            id_usuario_sesion=id_actual, # <--- NUEVO PARÁMETRO
+            id_usuario_sesion=id_actual,
             on_close=self.mostrar_menu_principal
         )
         controller.view.pack(fill="both", expand=True)

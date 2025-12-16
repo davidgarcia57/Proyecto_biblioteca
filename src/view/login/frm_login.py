@@ -11,7 +11,6 @@ class FrmLogin(ctk.CTkFrame):
         # Fondo general gris
         self.configure(fg_color="#EBEBEB") 
 
-        # --- TARJETA CENTRAL ---
         self.card = ctk.CTkFrame(
             self, 
             width=420,
@@ -21,12 +20,9 @@ class FrmLogin(ctk.CTkFrame):
         )
         self.card.place(relx=0.5, rely=0.5, anchor="center")
         
-        # --- CORRECCIÓN DE RUTA DE IMAGEN (VERSIÓN PULIDA) ---
         try:
-            # 1. Obtenemos la ruta segura
             ruta_logo = resource_path("resources/logo.png")
             
-            # 2. Verificamos si existe ANTES de intentar abrirla
             if os.path.exists(ruta_logo):
                 self.logo_img = ctk.CTkImage(
                     light_image=Image.open(ruta_logo), 
@@ -34,16 +30,15 @@ class FrmLogin(ctk.CTkFrame):
                 )
                 self.lbl_logo = ctk.CTkLabel(self.card, image=self.logo_img, text="")
                 self.lbl_logo.place(relx=0.5, y=40, anchor="n")
-                ajuste_y = 110 # Espacio extra si hay logo
+                ajuste_y = 110 
             else:
                 print(f"⚠️ No se encontró el logo en: {ruta_logo}")
-                ajuste_y = 0 # Sin espacio extra
+                ajuste_y = 0 
                 
         except Exception as e:
             print(f"Error cargando logo: {e}")
             ajuste_y = 0
 
-        # Título Principal
         self.lbl_titulo = ctk.CTkLabel(
             self.card, 
             text="BIBLIOTECA", 
@@ -52,7 +47,6 @@ class FrmLogin(ctk.CTkFrame):
         )
         self.lbl_titulo.place(relx=0.5, y=35 + ajuste_y, anchor="n")
 
-        # Subtítulo
         self.lbl_sub = ctk.CTkLabel(
             self.card, 
             text="Tu portal al conocimiento", 

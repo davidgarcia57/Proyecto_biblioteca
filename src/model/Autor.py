@@ -24,8 +24,6 @@ class Autor:
     
     @staticmethod
     def obtener_id_por_nombre(cursor, nombre):
-        # --- CORRECCIÓN AQUÍ ---
-        # Antes apuntaba a 'editoriales', ahora apunta a 'autores'
         sql = "SELECT id_autor FROM autores WHERE nombre_completo = %s"
         cursor.execute(sql, (nombre,))
         resultado = cursor.fetchone()

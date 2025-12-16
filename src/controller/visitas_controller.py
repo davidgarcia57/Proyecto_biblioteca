@@ -8,8 +8,6 @@ class VisitasController:
         self.view_container = view_container
         self.on_close = on_close
         self.reportes = ReportesController()
-        
-        # Inicializar vista
         self.view = FrmRegistroVisitas(view_container, self)
 
     def volver_menu(self):
@@ -17,7 +15,6 @@ class VisitasController:
             self.on_close()
 
     def registrar_entrada(self, datos):
-        # El área es obligatoria, el nombre puede ser opcional (anónimo)
         if not datos["area"]:
             messagebox.showwarning("Aviso", "Seleccione un área.")
             return

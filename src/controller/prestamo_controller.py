@@ -16,7 +16,7 @@ class PrestamoController:
         self.on_close = on_close
         self.db = ConexionBD()
         
-        # Variables para almacenar los IDs seleccionados (ya que no hay Entrys visibles)
+        # Variables para almacenar los ID
         self.id_libro_seleccionado = None
         self.id_lector_seleccionado = None
         
@@ -27,9 +27,7 @@ class PrestamoController:
         if self.on_close:
             self.on_close()
 
-    # =========================================================================
-    # LÓGICA DE LA LISTA DE PRÉSTAMOS (DEVOLUCIONES)
-    # =========================================================================
+    # Lista prestamos
     
     def iniciar_lista_prestamos(self):
         for widget in self.view_container.winfo_children():
@@ -57,9 +55,7 @@ class PrestamoController:
             finally:
                 conn.close()
 
-    # =========================================================================
-    # LÓGICA DE NUEVO PRÉSTAMO (ADAPTADA A LA NUEVA VISTA)
-    # =========================================================================
+    # Prestamo vista
 
     def abrir_busqueda_libros(self):
         def al_seleccionar(id_sel):
@@ -113,7 +109,7 @@ class PrestamoController:
             messagebox.showwarning("Faltan datos", "Por favor, seleccione un lector.")
             return
 
-        dias = 7 # Plazo fijo de 7 días
+        dias = 7 # Plazo de 7 dias
         fecha_dev = datetime.now() + timedelta(days=dias)
 
         conn = self.db.conectar()

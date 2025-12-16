@@ -12,15 +12,11 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         
         self.usuario = self.controller.app.usuario_actual
         
-        # --- LÓGICA DE USUARIO Y ROL ---
-        # 1. Obtenemos el rol crudo
         raw_rol = self.usuario.rol if self.usuario else "Invitado"
         nombre_usuario = self.usuario.nombre if self.usuario else "Usuario"
 
-        # 2. Normalizamos
         self.rol_limpio = str(raw_rol).strip().lower()
 
-        # Opcional: Debug
         print(f"DEBUG - Rol detectado: '{raw_rol}' -> Normalizado: '{self.rol_limpio}'")
 
         # --- PALETA DE COLORES ---
@@ -32,19 +28,16 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         
         self.configure(fg_color=self.COLOR_FONDO_MAIN)
         
-        # Grid Principal: Sidebar (Fijo) y Contenido (Flexible)
         self.grid_columnconfigure(0, weight=0) 
         self.grid_columnconfigure(1, weight=1) 
         self.grid_rowconfigure(0, weight=1)
         
-        # =================================================
-        #              1. BARRA LATERAL (SIDEBAR)
-        # =================================================
+        #Barra lateral
         self.sidebar_frame = ctk.CTkFrame(self, width=280, corner_radius=0, fg_color=self.COLOR_FONDO_MENU)
         self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
-        self.sidebar_frame.grid_propagate(False) # Mantiene el ancho fijo
+        self.sidebar_frame.grid_propagate(False)
         
-        # --- LOGO Y TÍTULO ---
+        #LOGO Y TÍTULO
         frm_logo = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
         frm_logo.pack(pady=(30, 10), padx=20)
 
@@ -65,7 +58,7 @@ class FrmMenuPrincipal(ctk.CTkFrame):
             text_color="white"
         ).pack()
 
-        # --- MENÚ DE NAVEGACIÓN ---
+        #MENÚ DE NAVEGACIÓN
         self.frm_nav = ctk.CTkFrame(self.sidebar_frame, fg_color="transparent")
         self.frm_nav.pack(fill="x", pady=10)
 
@@ -82,21 +75,14 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         self.crear_boton_menu(self.frm_nav, " 📊 Reportes", self.controller.mostrar_reportes_avanzados)
         self.crear_boton_menu(self.frm_nav, " 🚶 Visitas", self.controller.mostrar_registro_visitas)
 
-        # === INICIO DEL CAMBIO ===
+        #INICIO DEL CAMBIO
         # Si el usuario es Administrador, le mostramos el botón de gestión de usuarios
         if self.rol_limpio in ["admin", "administrador"]:
-             # Opcional: Un pequeño separador visual
+             #Pequeño separador visual
              ctk.CTkFrame(self.frm_nav, height=2, fg_color="#D7CCC8").pack(fill="x", padx=20, pady=10)
              
-             # El botón que lleva a la pantalla de usuarios
              self.crear_boton_menu(self.frm_nav, " ⚙️ Usuarios", self.controller.mostrar_usuarios_sistema)
-        # === FIN DEL CAMBIO ===
-
-        # NOTA: Se eliminó el botón de configuración de aquí (sidebar inferior)
-
-        # =================================================
-        #              2. ÁREA PRINCIPAL
-        # =================================================
+        #Area Principal
         self.main_content = ctk.CTkFrame(self, fg_color=self.COLOR_FONDO_MAIN, corner_radius=0)
         self.main_content.grid(row=0, column=1, sticky="nsew")
         
@@ -104,8 +90,7 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         self.main_content.grid_rowconfigure(1, weight=1) 
         self.main_content.grid_rowconfigure(2, weight=0) 
         self.main_content.grid_columnconfigure(0, weight=1)
-        
-        # --- HEADER ---
+
         self.header_frame = ctk.CTkFrame(self.main_content, height=90, fg_color="white", corner_radius=0)
         self.header_frame.grid(row=0, column=0, sticky="ew")
         
@@ -117,11 +102,10 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         )
         self.lbl_seccion.pack(side="left", padx=30, pady=20)
         
-        # --- RUEDA DE CONFIGURACIÓN (SUPERIOR DERECHA) ---
         if self.rol_limpio in ["admin", "administrador"]:
             self.btn_config = ctk.CTkButton(
                 self.header_frame, 
-                text="⚙️", # Icono de engranaje
+                text="⚙️", 
                 font=("Arial", 30), 
                 width=50, 
                 height=50, 
@@ -132,9 +116,7 @@ class FrmMenuPrincipal(ctk.CTkFrame):
             )
             self.btn_config.pack(side="right", padx=30)
 
-        # =================================================
-        #              3. DASHBOARD (CENTRO)
-        # =================================================
+        #Dashboard
         self.dashboard_frame = ctk.CTkFrame(self.main_content, fg_color="transparent")
         self.dashboard_frame.grid(row=1, column=0, sticky="nsew", padx=30, pady=20)
         
@@ -145,12 +127,10 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         except Exception:
             datos = {"libros": 0, "prestamos": 0, "usuarios": 0}
 
-        # Tarjetas 
         self.crear_tarjeta_info(self.dashboard_frame, "Total Obras", str(datos["libros"]), "📚", 0, 0)
         self.crear_tarjeta_info(self.dashboard_frame, "En Préstamo", str(datos["prestamos"]), "⏳", 0, 1)
         self.crear_tarjeta_info(self.dashboard_frame, "Lectores", str(datos["usuarios"]), "👥", 0, 2)
 
-        # --- ACCESOS RÁPIDOS ---
         lbl_rapidos = ctk.CTkLabel(
             self.dashboard_frame, 
             text="Accesos Rápidos", 
@@ -168,17 +148,13 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         self.crear_boton_rapido(frame_acciones, "Devolver Libro", "✅", self.controller.mostrar_lista_prestamos, 1, 0)
         self.crear_boton_rapido(frame_acciones, "Buscar Libro", "🔍", self.controller.mostrar_busqueda, 1, 1)
 
-        # =================================================
-        #              4. FOOTER (PRIVACIDAD Y SALIR)
-        # =================================================
+        #Privacidad y salirse
         self.footer_frame = ctk.CTkFrame(self.main_content, fg_color="transparent")
         self.footer_frame.grid(row=2, column=0, sticky="ew", pady=(0, 30), padx=30)
         
-        # Configurar columnas del footer: [ Espacio flexible (Privacidad) | Espacio fijo (Salir) ]
         self.footer_frame.grid_columnconfigure(0, weight=1)
         self.footer_frame.grid_columnconfigure(1, weight=0)
 
-        # Botón de Privacidad (Centrado en su columna o a la izquierda)
         self.btn_privacidad = ctk.CTkButton(
             self.footer_frame, 
             text="📜  AVISO DE PRIVACIDAD", 
@@ -192,9 +168,9 @@ class FrmMenuPrincipal(ctk.CTkFrame):
             width=280,
             command=self.abrir_privacidad
         )
-        self.btn_privacidad.grid(row=0, column=0) # Al estar en col 0 con weight 1, se centrará visualmente en ese espacio
+        self.btn_privacidad.grid(row=0, column=0)
 
-        # --- BOTÓN CERRAR SESIÓN (ESQUINA INFERIOR DERECHA) ---
+        #BOTÓN CERRAR SESIÓN (ESQUINA INFERIOR DERECHA)
         self.btn_logout = ctk.CTkButton(
             self.footer_frame, 
             text="Cerrar Sesión", 
@@ -207,9 +183,7 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         )
         self.btn_logout.grid(row=0, column=1, sticky="e", padx=(20, 0))
 
-    # =================================================
-    #              MÉTODOS AUXILIARES
-    # =================================================
+    # Auxiliares
     def crear_boton_menu(self, parent, texto, comando):
         btn = ctk.CTkButton(
             parent, 

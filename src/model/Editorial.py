@@ -5,7 +5,6 @@ class Editorial:
         self.ciudad = ciudad
 
     def guardar(self, cursor):
-        """Busca si existe o inserta una nueva editorial usando el cursor provisto."""
         # 1. Buscar si existe
         sql_buscar = "SELECT id_editorial FROM editoriales WHERE nombre = %s"
         cursor.execute(sql_buscar, (self.nombre,))

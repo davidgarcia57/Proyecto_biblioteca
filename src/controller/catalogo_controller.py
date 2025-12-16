@@ -11,7 +11,6 @@ class CatalogoController:
         self.id_usuario_actual = id_usuario_actual
         self.on_close = on_close
         self.view = FrmNuevoLibro(view_container, self)
-        # Instanciamos la conexión una sola vez
         self.db = ConexionBD()
 
     def volver_al_menu(self):
@@ -19,24 +18,17 @@ class CatalogoController:
             self.on_close()
 
     def registrar_libro_completo(self, datos):
-        # 1. Validaciones OBLIGATORIAS (Lo que NO puede ser N/A)
+        # 1. Validaciones OBLIGATORIAS
         if not datos.get("titulo") or str(datos.get("titulo")).strip() == "":
             self.view.mostrar_mensaje("Error: El Título es obligatorio.", True)
             return
 
-        # =========================================================================
-        # ✨ MAGIA DE LIMPIEZA: Rellenar campos vacíos con "N/A"
-        # =========================================================================
-        # Recorremos todos los datos recibidos
         for clave, valor in datos.items():
             # Si el valor es None o está vacío (sin contar espacios)
             if valor is None or str(valor).strip() == "":
-                # Excepción: No queremos poner "N/A" en campos numéricos estrictos si la BD es INT
-                # Pero asumiremos que tu BD acepta texto en la mayoría (Varchar).
                 datos[clave] = "N/A"
-        # =========================================================================
 
-        # Usamos el Context Manager (with)
+        # Usamos el Context Manager
         with self.db as conn:
             if not conn:
                 self.view.mostrar_mensaje("Error de conexión a la BD", True)
@@ -47,12 +39,12 @@ class CatalogoController:
                 # Iniciamos transacción
                 conn.begin() 
 
-                # --- PASO 1: Editorial ---
+                # Editorial
                 # Usamos los datos ya limpios (si venía vacío, ahora dice "N/A")
                 editorial = Editorial(datos.get("editorial_nombre"), datos.get("lugar_publicacion"))
                 id_editorial = editorial.guardar(cursor) 
 
-                # --- PASO 2: Obra ---
+                # Obra
                 obra = Obra(
                     titulo=datos["titulo"],
                     id_editorial=id_editorial,
@@ -75,13 +67,13 @@ class CatalogoController:
                 )
                 id_obra = obra.guardar(cursor)
 
-                # --- PASO 3: Autor ---
+                #Autor
                 autor = Autor(datos.get("autor_nombre"))
                 id_autor = autor.guardar(cursor)
                 
                 obra.relacionar_autor(cursor, id_autor)
 
-                # --- PASO 4: Ejemplar ---
+                # Ejemplar
                 ejemplar = Ejemplar(
                     id_obra=id_obra,
                     numero_copia=datos.get("numero_copia"),
@@ -89,7 +81,7 @@ class CatalogoController:
                 )
                 id_generado = ejemplar.guardar(cursor)
 
-                # Si todo sale bien:
+                # Si todo sale bien p.p:
                 conn.commit()
                 self.view.confirmar_registro(id_generado)
 

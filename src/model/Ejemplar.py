@@ -83,7 +83,6 @@ class Ejemplar:
         if conn:
             try:
                 cursor = conn.cursor()
-                # MODIFICADO: Ahora trae Autor y Clasificación
                 sql = """
                     SELECT 
                         e.numero_copia,  -- Adquisición
@@ -135,17 +134,14 @@ class Ejemplar:
         if conn:
             try:
                 cursor = conn.cursor()
-                # Solo actualiza SI el estado actual es 'Disponible' (para préstamos)
                 if nuevo_estado == 'Prestado':
                     sql = "UPDATE ejemplares SET estado = %s WHERE id_ejemplar = %s AND estado = 'Disponible'"
                 else:
-                    # Para devoluciones, no hay problema
                     sql = "UPDATE ejemplares SET estado = %s WHERE id_ejemplar = %s"
                 
                 cursor.execute(sql, (nuevo_estado, self.id_ejemplar))
                 conn.commit()
                 
-                # Verificamos si se actualizó alguna fila
                 if cursor.rowcount > 0:
                     self.estado = nuevo_estado
                     exito = True
@@ -170,7 +166,6 @@ class Ejemplar:
             try:
                 cursor = conn.cursor()
                 
-                # --- CORRECCIÓN AQUÍ: Usar %% en lugar de % dentro del SQL ---
                 sql = """
                     SELECT 
                         e.id_ejemplar,
@@ -197,7 +192,6 @@ class Ejemplar:
                     WHERE e.fecha_adquisicion BETWEEN %s AND %s
                     ORDER BY e.fecha_adquisicion DESC
                 """
-                # Nota: '%%Y-%%m-%%d' es necesario porque Python usa % para parámetros
                 
                 f_ini = f"{fecha_ini}-01 00:00:00"
                 f_fin = f"{fecha_fin}-31 23:59:59" 

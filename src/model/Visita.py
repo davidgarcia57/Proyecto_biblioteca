@@ -32,7 +32,6 @@ class Visita:
 
     @staticmethod
     def obtener_conteo_por_area(fecha_ini, fecha_fin):
-        """Retorna lista de tuplas: (Area, Cantidad)"""
         db = ConexionBD()
         conn = db.conectar()
         datos = []
@@ -53,7 +52,6 @@ class Visita:
 
     @staticmethod
     def obtener_conteo_total(fecha_ini, fecha_fin):
-        """Retorna el número entero total de visitas"""
         db = ConexionBD()
         conn = db.conectar()
         total = 0

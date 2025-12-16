@@ -11,7 +11,6 @@ class Solicitante:
         self.fecha_registro = fecha_registro if fecha_registro else datetime.now()
 
     def guardar(self):
-        """Guarda un nuevo solicitante o actualiza uno existente"""
         db = ConexionBD()
         conn = db.conectar()
         
@@ -19,7 +18,6 @@ class Solicitante:
             try:
                 cursor = conn.cursor()
                 if self.id_prestatario:
-                    # ACTUALIZAR
                     sql = """
                         UPDATE solicitantes SET nombre_completo=%s, telefono=%s, email=%s, direccion=%s 
                         WHERE id_prestatario=%s
@@ -94,9 +92,9 @@ class Solicitante:
                 conn.close()
         return nombre
 
-    # --- NUEVO MÉTODO PARA BÚSQUEDA ---
     @staticmethod
     def buscar_por_termino(termino):
+
         """Busca solicitantes por nombre o ID para el popup"""
         db = ConexionBD()
         conn = db.conectar()
@@ -116,6 +114,7 @@ class Solicitante:
             finally:
                 conn.close()
         return resultados
+    
     @staticmethod
     def obtener_todos_reporte():
         """Retorna lista para el reporte PDF"""

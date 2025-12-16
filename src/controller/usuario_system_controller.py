@@ -4,11 +4,10 @@ from tkinter import messagebox
 import hashlib
 
 class UsuarioSystemController:
-    # Agregamos id_usuario_sesion al init
     def __init__(self, view_container, id_usuario_sesion, on_close=None):
         self.view_container = view_container
         self.on_close = on_close
-        self.id_usuario_sesion = id_usuario_sesion # Guardamos quién está logueado
+        self.id_usuario_sesion = id_usuario_sesion
         
         self.view = FrmUsuariosSistema(view_container, self)
         self.cargar_tabla()
@@ -22,7 +21,6 @@ class UsuarioSystemController:
         self.view.limpiar_tabla()
         for u in usuarios:
             estado = "Activo" if u.activo == 1 else "Inactivo"
-            # Mostramos visualmente quién es el usuario actual en la tabla
             nombre_mostrar = u.nombre
             if u.id_usuario == self.id_usuario_sesion:
                 nombre_mostrar += " (TÚ)"
@@ -30,7 +28,6 @@ class UsuarioSystemController:
             self.view.agregar_fila(u.id_usuario, nombre_mostrar, u.usuario, u.rol, estado)
 
     def guardar_usuario(self, datos, id_editar=None):
-        # 1. Validaciones
         if not datos["nombre"] or not datos["usuario"] or not datos["rol"]:
             messagebox.showerror("Error", "Nombre, Usuario y Rol son obligatorios")
             return
@@ -63,7 +60,7 @@ class UsuarioSystemController:
 
         # 3. Guardar
         if nuevo_user.guardar():
-            # Si el usuario se editó a sí mismo y cambió su pass, aquí podríamos avisarle
+            # Si el usuario se editó a sí mismo y cambió su pass, aquí se le avisa
             if id_editar == self.id_usuario_sesion and pass_hash:
                  messagebox.showinfo("Aviso", "Has cambiado tu propia contraseña.\nÚsala la próxima vez que inicies sesión.")
             
@@ -74,8 +71,7 @@ class UsuarioSystemController:
             messagebox.showerror("Error", "No se pudo guardar (El usuario ya existe o error de BD)")
 
     def eliminar_usuario(self, id_usuario_a_eliminar):
-        # --- PROTECCIÓN ANTI-SUICIDIO ---
-        # Convertimos a string por seguridad al comparar
+        # Protección anti-tontos
         if str(id_usuario_a_eliminar) == str(self.id_usuario_sesion):
             messagebox.showwarning("Acción Denegada", "❌ No puedes eliminar tu propia cuenta mientras estás conectado.")
             return

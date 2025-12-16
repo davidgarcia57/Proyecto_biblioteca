@@ -2,7 +2,6 @@ import customtkinter as ctk
 from tkinter import messagebox
 from datetime import date
 
-# CORRECCIÓN: Cambiado de FrmPrestamo a FrmPrestamos (Plural)
 class FrmPrestamos(ctk.CTkFrame):
     def __init__(self, master, controller):
         super().__init__(master)
@@ -10,15 +9,12 @@ class FrmPrestamos(ctk.CTkFrame):
         
         self.configure(fg_color="#F3E7D2") # Fondo Beige
         
-        # Grid: 60% Operación | 40% Instrucciones
         self.grid_columnconfigure(0, weight=3)
         self.grid_columnconfigure(1, weight=2)
         self.grid_rowconfigure(1, weight=1)
 
-        # --- HEADER ---
         self.crear_header()
 
-        # --- PANELES ---
         self.crear_panel_operacion(row=1, col=0)
         self.crear_panel_instrucciones(row=1, col=1)
 
@@ -39,7 +35,6 @@ class FrmPrestamos(ctk.CTkFrame):
         p_op = ctk.CTkFrame(self, fg_color="white", corner_radius=20)
         p_op.grid(row=row, column=col, sticky="nsew", padx=(30, 15), pady=20)
         
-        # Sección 1: Buscar Libro
         ctk.CTkLabel(p_op, text="1. Seleccionar Libro", font=("Arial", 20, "bold"), text_color="#A7744A").pack(pady=(20, 10))
         
         f_libro = ctk.CTkFrame(p_op, fg_color="#F9F5EB")
@@ -74,7 +69,7 @@ class FrmPrestamos(ctk.CTkFrame):
         btn_bus_lec.pack(side="right", padx=10, pady=10)
 
         # Sección 3: Confirmar
-        ctk.CTkFrame(p_op, height=2, fg_color="#Decdbb").pack(fill="x", padx=40, pady=40) # Separador
+        ctk.CTkFrame(p_op, height=2, fg_color="#Decdbb").pack(fill="x", padx=40, pady=40)
         
         ctk.CTkButton(p_op, text="✅ CONFIRMAR PRÉSTAMO", width=300, height=60,
                       fg_color="#2E7D32", hover_color="#1B5E20",

@@ -8,15 +8,12 @@ class FrmSolicitantes(ctk.CTkFrame):
         
         self.configure(fg_color="#F3E7D2")
         
-        # Grid: 60% Gestión (Izq) | 40% Instrucciones (Der)
         self.grid_columnconfigure(0, weight=3)
         self.grid_columnconfigure(1, weight=2)
         self.grid_rowconfigure(1, weight=1)
 
-        # --- HEADER ---
         self.crear_header()
 
-        # --- PANELES ---
         self.crear_panel_gestion(row=1, col=0)
         self.crear_panel_instrucciones(row=1, col=1)
 
@@ -109,7 +106,7 @@ class FrmSolicitantes(ctk.CTkFrame):
         ctk.CTkLabel(container, text=texto, font=("Arial", 20), text_color="#333333", justify="center").pack(anchor="center")
         ctk.CTkLabel(container, text="👥", font=("Arial", 100)).pack(side="bottom", pady=40)
 
-    # --- FUNCIONALIDAD ---
+    #Funcionalidad
     def guardar_lector(self):
         data = {
             "nombre": self.entry_nombre.get(),
@@ -132,7 +129,6 @@ class FrmSolicitantes(ctk.CTkFrame):
             self.entry_nombre.delete(0, 'end'); self.entry_nombre.insert(0, vals[1])
             self.entry_telefono.delete(0, 'end'); self.entry_telefono.insert(0, str(vals[2]))
             self.entry_email.delete(0, 'end'); self.entry_email.insert(0, vals[3])
-            # Nota: Dirección no se muestra en tabla para ahorrar espacio, pero al guardar se mantiene si no se edita o se puede mejorar el controller
 
     def limpiar_form(self):
         self.id_editar = None
@@ -145,9 +141,6 @@ class FrmSolicitantes(ctk.CTkFrame):
         self.tree.delete(*self.tree.get_children())
         
         for obj in lista_objetos:
-            # --- CORRECCIÓN AQUÍ ---
-            # Convertimos el OBJETO a una TUPLA DE TEXTO
-            # (id, nombre, telefono, email) -> Orden de las columnas
             valores = (
                 obj.id_prestatario, 
                 obj.nombre_completo, 

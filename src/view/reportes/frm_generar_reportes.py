@@ -55,11 +55,9 @@ class FrmGenerarReportes(ctk.CTkFrame):
             self.main_controller.volver_menu()
 
     def crear_panel_instrucciones(self, row, col):
-        # 1. Marco con Borde (Igual que en Visitas)
         frame_inst = ctk.CTkFrame(self, fg_color="white", corner_radius=20, border_color="#Decdbb", border_width=2)
         frame_inst.grid(row=row, column=col, sticky="nsew", padx=(20, 10), pady=10)
         
-        # 2. Container Transparente (Para centrado vertical y horizontal perfecto)
         container = ctk.CTkFrame(frame_inst, fg_color="transparent")
         container.pack(expand=True, fill="both", padx=20)
         
@@ -84,13 +82,12 @@ class FrmGenerarReportes(ctk.CTkFrame):
         lbl_texto = ctk.CTkLabel(
             container, 
             text=texto_instrucciones, 
-            font=("Arial", 20), # Misma letra que en Visitas
+            font=("Arial", 20), 
             text_color="#333333",
-            justify="center" # Centramos renglón por renglón
+            justify="center" 
         )
         lbl_texto.pack(pady=10, anchor="center")
         
-        # Icono Centrado
         ctk.CTkLabel(container, text="📄", font=("Arial", 100)).pack(side="bottom", pady=40, anchor="center")
 
     def crear_panel_botones(self, row, col):

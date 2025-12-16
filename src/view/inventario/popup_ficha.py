@@ -9,7 +9,6 @@ class PopupFicha(ctk.CTkToplevel):
         self.callback_baja = callback_baja
         self.callback_guardar = callback_guardar_cambios
         
-        # Hacemos la ventana modal
         self.grab_set()
         self.focus_force()
 
@@ -19,20 +18,16 @@ class PopupFicha(ctk.CTkToplevel):
         self.editando = False
         self.entries = {} 
 
-        # --- HEADER ---
         self.frm_header = ctk.CTkFrame(self, fg_color="transparent")
         self.frm_header.pack(fill="x", padx=20, pady=(20,5))
-        
-        # Título
+        }
         self.entries['titulo'] = ctk.CTkEntry(self.frm_header, font=("Georgia", 20, "bold"), 
-                                              # Al inicio usamos el color del fondo para que parezca Label
                                               fg_color=self.cget("fg_color"), 
                                               border_width=0, width=600)
         self.entries['titulo'].insert(0, self.obra.get('titulo', 'Sin Título'))
         self.entries['titulo'].configure(state="disabled")
         self.entries['titulo'].pack(side="left")
 
-        # --- GRID DE DATOS ---
         frm_datos = ctk.CTkFrame(self, fg_color="white", corner_radius=10)
         frm_datos.pack(fill="x", padx=20, pady=10)
 
@@ -53,14 +48,11 @@ class PopupFicha(ctk.CTkToplevel):
             
             val = str(self.obra.get(key, '') or '')
             
-            # CORRECCIÓN: Insertar en estado normal, luego deshabilitar
             entry = ctk.CTkEntry(frm_datos, font=("Arial", 12), fg_color="#F9F9F9", border_color="#D0D0D0")
             entry.insert(0, val)
             entry.configure(state="disabled")
             entry.grid(row=r*2+1, column=c, sticky="ew", padx=15, pady=(0,10))
             
-            # CORRECCIÓN: Agregamos 'editorial' a las entries para que se desbloquee también
-            # (Aunque nota: cambiar el texto aquí no cambiará el ID en la BD automáticamente sin lógica extra)
             if key != 'autor': 
                 self.entries[key] = entry
 
@@ -107,7 +99,6 @@ class PopupFicha(ctk.CTkToplevel):
         self.editando = not self.editando
         
         nuevo_estado = "normal" if self.editando else "disabled"
-        # CORRECCIÓN DEL ERROR DE CONSOLA: Usamos el color de fondo real, no "transparent"
         bg_color = self.cget("fg_color") 
         nuevo_color = "white" if self.editando else bg_color
         borde = 2 if self.editando else 0

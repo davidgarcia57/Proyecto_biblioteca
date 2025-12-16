@@ -94,7 +94,7 @@ class Obra:
         Busca ejemplares que estén DISPONIBLES para préstamo.
         Retorna una lista de tuplas: (id_ejemplar, titulo, autor)
         """
-        from src.config.conexion_db import ConexionBD # Import local para evitar ciclos
+        from src.config.conexion_db import ConexionBD
         db = ConexionBD()
         conn = db.conectar()
         resultados = []
@@ -133,7 +133,6 @@ class Obra:
             try:
                 cursor = conn.cursor()
                 
-                # --- AGREGAMOS: idioma, edicion, serie ---
                 sql_obra = """
                     SELECT o.titulo, o.isbn, o.anio_publicacion, o.clasificacion, 
                            o.descripcion, o.paginas, o.dimensiones,
@@ -150,7 +149,7 @@ class Obra:
                 
                 if row:
                     detalle['obra'] = {
-                        'id_obra': id_obra, # Importante para guardar después
+                        'id_obra': id_obra,
                         'titulo': row[0], 
                         'isbn': row[1], 
                         'anio': row[2], 
@@ -160,13 +159,10 @@ class Obra:
                         'dimensiones': row[6],
                         'editorial': row[7], 
                         'autor': row[8],
-                        # Nuevos campos mapeados por índice (orden del SELECT)
                         'idioma': row[9],
                         'edicion': row[10],
                         'serie': row[11]
                     }
-
-                # (El resto de la función para 'ejemplares' sigue igual...)
                 sql_ejemplares = "SELECT id_ejemplar, numero_copia, ubicacion_fisica, estado FROM ejemplares WHERE id_obra = %s"
                 cursor.execute(sql_ejemplares, (id_obra,))
                 detalle['ejemplares'] = [{'id': r[0], 'copia': r[1], 'ubicacion': r[2], 'estado': r[3]} for r in cursor.fetchall()]

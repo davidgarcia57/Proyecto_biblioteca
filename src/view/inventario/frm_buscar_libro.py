@@ -8,7 +8,6 @@ class FrmBuscarLibro(ctk.CTkFrame):
         
         self.configure(fg_color="#F3E7D2")
         
-        # Grid: 30% Instrucciones (Izq) | 70% Tabla (Der)
         self.grid_columnconfigure(0, weight=3)
         self.grid_columnconfigure(1, weight=7)
         self.grid_rowconfigure(1, weight=1)
@@ -17,10 +16,8 @@ class FrmBuscarLibro(ctk.CTkFrame):
         self.texto_busqueda.trace_add("write", self.al_escribir)
         self.id_busqueda_programada = None 
 
-        # --- HEADER ---
         self.crear_header()
 
-        # --- PANELES ---
         self.crear_panel_instrucciones(row=1, col=0)
         self.crear_panel_catalogo(row=1, col=1)
 
@@ -60,7 +57,6 @@ class FrmBuscarLibro(ctk.CTkFrame):
         
         ctk.CTkLabel(container, text=texto, font=("Arial", 20), text_color="#333333", justify="center").pack(anchor="center")
         
-        # Botón Nuevo Libro (Movido aquí para mejor acceso)
         ctk.CTkButton(container, text="➕ REGISTRAR NUEVO LIBRO", width=250, height=60,
                       fg_color="#2E7D32", hover_color="#1B5E20", font=("Arial", 16, "bold"),
                       command=self.evento_agregar).pack(side="bottom", pady=40)
@@ -108,7 +104,7 @@ class FrmBuscarLibro(ctk.CTkFrame):
         sb.pack(side="right", fill="y")
         self.tree.bind("<Double-1>", self.evento_doble_clic)
 
-    # --- LÓGICA PRESERVADA ---
+    # Logica
     def al_escribir(self, *args):
         if self.id_busqueda_programada: self.after_cancel(self.id_busqueda_programada)
         self.id_busqueda_programada = self.after(300, self.ejecutar_busqueda_ahora)

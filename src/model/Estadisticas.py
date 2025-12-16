@@ -14,10 +14,7 @@ class Estadisticas:
         if conn:
             try:
                 cursor = conn.cursor()
-                
                 # 1. Total de Obras Activas
-                # Explicación: Contamos los ID de obras únicos (DISTINCT) que están en la tabla ejemplares
-                # PERO solo aquellos cuyo estado NO sea 'Baja'.
                 sql_obras = "SELECT COUNT(DISTINCT id_obra) FROM ejemplares WHERE estado != 'Baja'"
                 cursor.execute(sql_obras)
                 stats["libros"] = cursor.fetchone()[0]

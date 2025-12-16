@@ -1,21 +1,18 @@
 import customtkinter as ctk
 from datetime import datetime
 
-# --- CLASE BASE PARA COMPARTIR HERRAMIENTAS ---
 class PasoBase(ctk.CTkFrame):
     def __init__(self, master, titulo_paso):
         super().__init__(master, fg_color="transparent")
         
         # Colores del Tema
-        self.COLOR_FONDO_APP = "#F3E7D2" # El beige de fondo de tu app
-        self.COLOR_TEXTO = "#5a3b2e"     # El café oscuro original (más elegante)
+        self.COLOR_FONDO_APP = "#F3E7D2" 
+        self.COLOR_TEXTO = "#5a3b2e"     
         self.COLOR_BOTON = "#A7744A"
         self.COLOR_LINEA = "#A7744A"
         
-        # Título del Paso
         self.crear_encabezado(titulo_paso)
         
-        # Frame principal del grid
         self.grid_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.grid_frame.pack(fill="both", expand=True)
         self.grid_frame.columnconfigure((0, 1), weight=1)
@@ -24,7 +21,6 @@ class PasoBase(ctk.CTkFrame):
         frame = ctk.CTkFrame(self, fg_color="transparent")
         frame.pack(fill="x", pady=(0, 20))
         
-        # Título grande y elegante (Georgia se lee bien en títulos)
         ctk.CTkLabel(
             frame, 
             text=texto, 
@@ -35,15 +31,13 @@ class PasoBase(ctk.CTkFrame):
         ctk.CTkFrame(self, height=2, fg_color=self.COLOR_LINEA).pack(fill="x", pady=(5, 20))
 
     def crear_input(self, label_text, row, col, colspan=1):
-        # Etiqueta: Arial para legibilidad, tamaño 16
         ctk.CTkLabel(
             self.grid_frame, 
             text=label_text, 
             font=("Arial", 16, "bold"), 
             text_color=self.COLOR_TEXTO
         ).grid(row=row, column=col, sticky="w", pady=(10, 5), padx=15)
-        
-        # --- EL CAMBIO CLAVE ESTÁ AQUÍ ---
+    
         entry = ctk.CTkEntry(
             self.grid_frame, 
             placeholder_text=label_text, 
@@ -52,15 +46,11 @@ class PasoBase(ctk.CTkFrame):
             border_color=self.COLOR_BOTON, 
             border_width=2,
             
-            # 1. Tamaño grande
             height=45,              
             font=("Arial", 16),     
             
-            # 2. Redondeado suave (estético)
             corner_radius=15,       
             
-            # 3. TRUCO PARA QUE SE VEA BIEN: 
-            # Decirle que el fondo de atrás es el beige de la app
             bg_color=self.COLOR_FONDO_APP 
         )
         entry.grid(row=row+1, column=col, columnspan=colspan, sticky="ew", pady=(0, 10), padx=15)
@@ -69,7 +59,7 @@ class PasoBase(ctk.CTkFrame):
     def validar_vacio(self, entry, nombre_campo):
         texto = entry.get().strip()
         if not texto:
-            entry.configure(border_color="#D32F2F") # Rojo error
+            entry.configure(border_color="#D32F2F")
             return False, f"El campo '{nombre_campo}' es obligatorio."
         entry.configure(border_color=self.COLOR_BOTON)
         return True, ""
@@ -87,8 +77,6 @@ class PasoBase(ctk.CTkFrame):
             if isinstance(widget, ctk.CTkEntry):
                 widget.delete(0, 'end')
                 widget.configure(border_color=self.COLOR_BOTON)
-
-# --- PASO 1 ---
 class Paso1(PasoBase):
     def __init__(self, master):
         super().__init__(master, "1. Datos de Ficha y Clasificación")
@@ -113,8 +101,8 @@ class Paso1(PasoBase):
             border_width=2, 
             label_text="Seleccione:",
             label_font=("Arial", 14, "bold"),
-            corner_radius=15,       # Redondeado también aquí
-            bg_color=self.COLOR_FONDO_APP # Suavizado contra el fondo beige
+            corner_radius=15,       
+            bg_color=self.COLOR_FONDO_APP 
         )
         self.scroll_ilus.grid(row=5, column=0, sticky="ew", padx=15, pady=5)
         
@@ -177,7 +165,6 @@ class Paso1(PasoBase):
         self.entry_idioma.delete(0, 'end')
         self.entry_idioma.insert(0, "Español")
 
-# --- PASO 2: AUTORÍA ---
 class Paso2(PasoBase):
     def __init__(self, master):
         super().__init__(master, "2. Autoría y Título")
@@ -201,7 +188,6 @@ class Paso2(PasoBase):
             "asientos_secundarios": self.entry_asientos.get()
         }
 
-# --- PASO 3: PUBLICACIÓN ---
 class Paso3(PasoBase):
     def __init__(self, master):
         super().__init__(master, "3. Edición, Publicación y Descripción")
@@ -241,7 +227,6 @@ class Paso3(PasoBase):
             "descripcion": self.entry_desc.get()
         }
 
-# --- PASO 4: EJEMPLARES ---
 class Paso4(PasoBase):
     def __init__(self, master):
         super().__init__(master, "4. Ejemplares y Auditoría")
