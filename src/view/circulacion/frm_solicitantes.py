@@ -1,7 +1,5 @@
 import customtkinter as ctk
 from tkinter import ttk, messagebox
-import os
-from PIL import Image 
 
 class FrmSolicitantes(ctk.CTkFrame):
     def __init__(self, master, controller):
@@ -9,166 +7,151 @@ class FrmSolicitantes(ctk.CTkFrame):
         self.controller = controller
         
         self.configure(fg_color="#F3E7D2")
-        self.grid_columnconfigure(0, weight=0) 
-        self.grid_columnconfigure(1, weight=1) 
+        
+        # Grid: 60% Gestión (Izq) | 40% Instrucciones (Der)
+        self.grid_columnconfigure(0, weight=3)
+        self.grid_columnconfigure(1, weight=2)
         self.grid_rowconfigure(1, weight=1)
 
-        self.id_actual = None 
-
+        # --- HEADER ---
         self.crear_header()
-        self.crear_panel_formulario()
-        self.crear_panel_tabla()
+
+        # --- PANELES ---
+        self.crear_panel_gestion(row=1, col=0)
+        self.crear_panel_instrucciones(row=1, col=1)
 
     def crear_header(self):
         header = ctk.CTkFrame(self, fg_color="transparent")
-        header.grid(row=0, column=0, columnspan=2, sticky="ew", padx=20, pady=(15, 10))
+        header.grid(row=0, column=0, columnspan=2, sticky="ew", padx=30, pady=(20, 10))
         
-        ctk.CTkButton(
-            header, text="⬅ Volver", width=90, height=35,
-            fg_color="#A7744A", hover_color="#8c5e3a", font=("Arial", 13, "bold"),
-            command=self.controller.volver_menu
-        ).pack(side="left")
+        btn_volver = ctk.CTkButton(
+            header, text="⬅ VOLVER AL MENÚ", width=220, height=55,
+            fg_color="#8D6E63", hover_color="#6D4C41",
+            font=("Arial", 18, "bold"), command=self.controller.volver_menu
+        )
+        btn_volver.pack(side="left")
         
-        ctk.CTkLabel(
-            header, text="Gestión de Solicitantes", 
-            font=("Georgia", 26, "bold"), text_color="#5a3b2e"
-        ).pack(side="left", padx=20)
+        ctk.CTkLabel(header, text="DIRECTORIO DE LECTORES", font=("Georgia", 32, "bold"), text_color="#5a3b2e").pack(side="left", padx=40)
 
-    def crear_panel_formulario(self):
-        self.p_form = ctk.CTkFrame(self, width=320, fg_color="white", corner_radius=20, border_width=1, border_color="#Decdbb")
-        self.p_form.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
-        self.p_form.grid_propagate(False) 
-
-        # --- LOGO ---
-        frame_img = ctk.CTkFrame(self.p_form, fg_color="transparent")
-        frame_img.pack(pady=(20, 10))
-        try:
-            image_path = "logo_biblioteca.png" 
-            if os.path.exists(image_path):
-                img_pil = Image.open(image_path)
-                img_ctk = ctk.CTkImage(light_image=img_pil, size=(100, 100))
-                ctk.CTkLabel(frame_img, image=img_ctk, text="").pack()
-        except Exception:
-            pass
-
-        ctk.CTkLabel(self.p_form, text="Datos Personales", font=("Arial", 16, "bold"), text_color="#A7744A").pack(pady=(0, 15))
-
-        self.entry_nombre = self.crear_input("Nombre Completo *")
-        self.entry_telefono = self.crear_input("Teléfono")
-        self.entry_email = self.crear_input("Correo Electrónico")
-        self.entry_direccion = self.crear_input("Dirección")
-
-        ctk.CTkFrame(self.p_form, height=2, fg_color="#E0E0E0").pack(fill="x", padx=30, pady=15)
-
-        self.btn_guardar = ctk.CTkButton(self.p_form, text="Guardar Registro", fg_color="#2E7D32", 
-                                         height=40, font=("Arial", 13, "bold"), command=self.evento_guardar)
-        self.btn_guardar.pack(pady=5, padx=20, fill="x")
+    def crear_panel_gestion(self, row, col):
+        p_gest = ctk.CTkFrame(self, fg_color="white", corner_radius=20)
+        p_gest.grid(row=row, column=col, sticky="nsew", padx=(30, 15), pady=20)
         
-        self.btn_limpiar = ctk.CTkButton(self.p_form, text="Limpiar / Nuevo", fg_color="gray", 
-                                         height=35, command=self.limpiar_form)
-        self.btn_limpiar.pack(pady=5, padx=20, fill="x")
-
-        self.btn_eliminar = ctk.CTkButton(self.p_form, text="Eliminar Seleccionado", fg_color="#D32F2F", 
-                                          height=35, command=self.evento_eliminar)
-        self.btn_eliminar.pack(pady=(20, 5), padx=20, fill="x")
-
-        self.btn_imprimir = ctk.CTkButton(self.p_form, text="🖨️ Imprimir Lista PDF", fg_color="#5a3b2e", 
-                                          height=35, command=self.imprimir_pdf)
-        self.btn_imprimir.pack(pady=5, padx=20, fill="x")
-
-    def crear_panel_tabla(self):
-        p_tabla = ctk.CTkFrame(self, fg_color="white", corner_radius=20, border_width=1, border_color="#Decdbb")
-        p_tabla.grid(row=1, column=1, sticky="nsew", padx=(0, 20), pady=20)
+        # Formulario
+        f_form = ctk.CTkFrame(p_gest, fg_color="transparent")
+        f_form.pack(fill="x", padx=20, pady=20)
         
-        ctk.CTkLabel(p_tabla, text="Directorio de Solicitantes", font=("Arial", 16, "bold"), text_color="#A7744A").pack(pady=15)
-
-        frame_tree = ctk.CTkFrame(p_tabla, fg_color="transparent")
-        frame_tree.pack(fill="both", expand=True, padx=20, pady=(0, 20))
-
-        style = ttk.Style()
-        style.theme_use("clam")
-        style.configure("Treeview", background="white", rowheight=30, font=("Arial", 11))
-        style.configure("Treeview.Heading", font=("Arial", 11, "bold"), background="#E8D6C0", foreground="#5a3b2e")
-        style.map("Treeview", background=[("selected", "#A7744A")])
-
-        self.tree = ttk.Treeview(frame_tree, columns=("ID", "Nombre", "Tel", "Email"), show="headings", selectmode="browse")
+        ctk.CTkLabel(f_form, text="Nuevo / Editar Lector", font=("Arial", 18, "bold"), text_color="#A7744A").pack(anchor="w", pady=(0, 10))
         
-        scrollbar = ctk.CTkScrollbar(frame_tree, orientation="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scrollbar.set)
-        scrollbar.pack(side="right", fill="y")
+        self.entry_nombre = ctk.CTkEntry(f_form, placeholder_text="Nombre Completo", height=45, font=("Arial", 14))
+        self.entry_nombre.pack(fill="x", pady=5)
+        
+        self.entry_telefono = ctk.CTkEntry(f_form, placeholder_text="Teléfono", height=45, font=("Arial", 14))
+        self.entry_telefono.pack(fill="x", pady=5)
+        
+        self.entry_email = ctk.CTkEntry(f_form, placeholder_text="Correo Electrónico", height=45, font=("Arial", 14))
+        self.entry_email.pack(fill="x", pady=5)
+        
+        self.entry_direccion = ctk.CTkEntry(f_form, placeholder_text="Dirección", height=45, font=("Arial", 14))
+        self.entry_direccion.pack(fill="x", pady=5)
+        
+        # Botones Acción
+        f_btns = ctk.CTkFrame(f_form, fg_color="transparent")
+        f_btns.pack(fill="x", pady=15)
+        
+        ctk.CTkButton(f_btns, text="LIMPIAR", width=100, height=40, fg_color="gray", command=self.limpiar_form).pack(side="left", padx=5)
+        ctk.CTkButton(f_btns, text="💾 GUARDAR LECTOR", width=200, height=40, fg_color="#2E7D32", 
+                      font=("Arial", 14, "bold"), command=self.guardar_lector).pack(side="right", padx=5)
+
+        # Tabla
+        f_tabla = ctk.CTkFrame(p_gest, fg_color="transparent")
+        f_tabla.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        
+        cols = ("id", "nombre", "telefono", "email")
+        self.tree = ttk.Treeview(f_tabla, columns=cols, show="headings", selectmode="browse")
+        
+        self.tree.heading("id", text="ID"); self.tree.column("id", width=40)
+        self.tree.heading("nombre", text="Nombre"); self.tree.column("nombre", width=150)
+        self.tree.heading("telefono", text="Teléfono"); self.tree.column("telefono", width=100)
+        self.tree.heading("email", text="Email"); self.tree.column("email", width=150)
+        
+        sb = ctk.CTkScrollbar(f_tabla, orientation="vertical", command=self.tree.yview)
+        self.tree.configure(yscroll=sb.set)
+        
         self.tree.pack(side="left", fill="both", expand=True)
-
-        self.tree.heading("ID", text="ID")
-        self.tree.heading("Nombre", text="Nombre Completo")
-        self.tree.heading("Tel", text="Teléfono")
-        self.tree.heading("Email", text="Correo Electrónico")
+        sb.pack(side="right", fill="y")
+        self.tree.bind("<Double-1>", self.cargar_para_editar)
         
-        self.tree.column("ID", width=40, anchor="center")
-        self.tree.column("Nombre", width=200, anchor="w")
-        self.tree.column("Tel", width=100, anchor="center")
-        self.tree.column("Email", width=180, anchor="w")
+        # Carga inicial
+        self.controller.listar_solicitantes()
+
+    def crear_panel_instrucciones(self, row, col):
+        p_inst = ctk.CTkFrame(self, fg_color="white", corner_radius=20, border_color="#Decdbb", border_width=2)
+        p_inst.grid(row=row, column=col, sticky="nsew", padx=(15, 30), pady=20)
         
-        self.tree.bind("<<TreeviewSelect>>", self.seleccionar_fila)
+        container = ctk.CTkFrame(p_inst, fg_color="transparent")
+        container.pack(expand=True, fill="both", padx=20)
+        
+        ctk.CTkLabel(container, text="ADMINISTRACIÓN", font=("Arial", 26, "bold"), text_color="#A7744A").pack(pady=(0, 30))
+        
+        texto = (
+            "REGISTRAR:\n"
+            "Llene los campos a la izquierda y presione\n"
+            "'Guardar Lector' para agregarlo.\n\n"
+            "EDITAR:\n"
+            "Haga DOBLE CLIC en un usuario de la lista\n"
+            "para cargar sus datos, modifíquelos y\n"
+            "presione Guardar nuevamente.\n\n"
+            "IMPORTANTE:\n"
+            "El teléfono es obligatorio para préstamos."
+        )
+        
+        ctk.CTkLabel(container, text=texto, font=("Arial", 20), text_color="#333333", justify="center").pack(anchor="center")
+        ctk.CTkLabel(container, text="👥", font=("Arial", 100)).pack(side="bottom", pady=40)
 
-    def crear_input(self, placeholder):
-        ctk.CTkLabel(self.p_form, text=placeholder, anchor="w", font=("Arial", 11, "bold"), text_color="gray").pack(fill="x", padx=25, pady=(8,0))
-        entry = ctk.CTkEntry(self.p_form, placeholder_text=placeholder, height=35, border_color="#A7744A")
-        entry.pack(fill="x", padx=20, pady=(2,0))
-        return entry
-
-    # --- NUEVO MÉTODO PARA LLENAR LA TABLA (MVC) ---
-    def actualizar_tabla(self, lista_solicitantes):
-        """Recibe lista de objetos Solicitante y llena la tabla"""
-        # Limpiar tabla actual
-        for item in self.tree.get_children():
-            self.tree.delete(item)
-            
-        # Llenar con datos nuevos
-        for s in lista_solicitantes:
-            # Asumiendo que 's' es un objeto Solicitante
-            val = (s.id_prestatario, s.nombre_completo, s.telefono, s.email)
-            self.tree.insert("", "end", values=val)
-
-    def limpiar_form(self):
-        self.id_actual = None
-        self.entry_nombre.delete(0, 'end')
-        self.entry_telefono.delete(0, 'end')
-        self.entry_email.delete(0, 'end')
-        self.entry_direccion.delete(0, 'end')
-        self.btn_guardar.configure(text="Guardar Registro", fg_color="#2E7D32")
-        if self.tree.selection():
-            self.tree.selection_remove(self.tree.selection())
-        self.entry_nombre.focus()
-
-    def evento_guardar(self):
-        datos = {
+    # --- FUNCIONALIDAD ---
+    def guardar_lector(self):
+        data = {
             "nombre": self.entry_nombre.get(),
             "telefono": self.entry_telefono.get(),
             "email": self.entry_email.get(),
             "direccion": self.entry_direccion.get()
         }
-        self.controller.guardar_solicitante(datos, self.id_actual)
-
-    def evento_eliminar(self):
-        if self.id_actual:
-            if messagebox.askyesno("Confirmar", f"¿Eliminar al solicitante ID {self.id_actual}?"):
-                self.controller.eliminar_solicitante(self.id_actual)
+        if hasattr(self, 'id_editar') and self.id_editar:
+            data['id'] = self.id_editar
+            self.controller.actualizar_solicitante(data)
         else:
-            messagebox.showwarning("Aviso", "Seleccione un solicitante de la lista para eliminar.")
+            self.controller.agregar_solicitante(data)
+        self.limpiar_form()
 
-    def seleccionar_fila(self, event):
+    def cargar_para_editar(self, event):
         item = self.tree.selection()
         if item:
-            vals = self.tree.item(item, "values")
-            self.limpiar_form()
-            
-            self.id_actual = vals[0]
-            self.entry_nombre.insert(0, vals[1])
-            self.entry_telefono.insert(0, vals[2])
-            self.entry_email.insert(0, vals[3])
-            
-            self.btn_guardar.configure(text="Actualizar Datos", fg_color="#A7744A")
+            vals = self.tree.item(item)['values']
+            self.id_editar = vals[0]
+            self.entry_nombre.delete(0, 'end'); self.entry_nombre.insert(0, vals[1])
+            self.entry_telefono.delete(0, 'end'); self.entry_telefono.insert(0, str(vals[2]))
+            self.entry_email.delete(0, 'end'); self.entry_email.insert(0, vals[3])
+            # Nota: Dirección no se muestra en tabla para ahorrar espacio, pero al guardar se mantiene si no se edita o se puede mejorar el controller
 
-    def imprimir_pdf(self):
-        # CORRECTO: Delegar al controlador, no importar lógica aquí
-        self.controller.imprimir_reporte()
+    def limpiar_form(self):
+        self.id_editar = None
+        self.entry_nombre.delete(0, 'end')
+        self.entry_telefono.delete(0, 'end')
+        self.entry_email.delete(0, 'end')
+        self.entry_direccion.delete(0, 'end')
+
+    def actualizar_tabla(self, lista_objetos):
+        self.tree.delete(*self.tree.get_children())
+        
+        for obj in lista_objetos:
+            # --- CORRECCIÓN AQUÍ ---
+            # Convertimos el OBJETO a una TUPLA DE TEXTO
+            # (id, nombre, telefono, email) -> Orden de las columnas
+            valores = (
+                obj.id_prestatario, 
+                obj.nombre_completo, 
+                obj.telefono, 
+                obj.email
+            )
+            self.tree.insert("", "end", values=valores)

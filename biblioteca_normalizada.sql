@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 05-12-2025 a las 15:32:52
+-- Tiempo de generación: 16-12-2025 a las 09:19:44
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `biblioteca_normalizada`
 --
+CREATE DATABASE IF NOT EXISTS `biblioteca_normalizada` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `biblioteca_normalizada`;
 
 -- --------------------------------------------------------
 
@@ -42,7 +44,8 @@ INSERT INTO `autores` (`id_autor`, `nombre_completo`, `tipo`) VALUES
 (2, 'Quijote', 'Persona'),
 (3, 'Autor Prueba de eliminación de libros', 'Persona'),
 (4, 'Autor prueba de vista', 'Persona'),
-(5, 'prueba', 'Persona');
+(5, 'prueba', 'Persona'),
+(6, 'Autor 3', 'Persona');
 
 -- --------------------------------------------------------
 
@@ -65,7 +68,8 @@ INSERT INTO `autores_obras` (`id_obra`, `id_autor`, `rol`) VALUES
 (2, 2, 'Autor Principal'),
 (3, 3, 'Autor Principal'),
 (4, 4, 'Autor Principal'),
-(5, 5, 'Autor Principal');
+(5, 5, 'Autor Principal'),
+(6, 6, 'Autor Principal');
 
 -- --------------------------------------------------------
 
@@ -108,10 +112,11 @@ CREATE TABLE `ejemplares` (
 
 INSERT INTO `ejemplares` (`id_ejemplar`, `id_obra`, `numero_copia`, `ubicacion_fisica`, `fecha_adquisicion`, `estado`) VALUES
 (1, 1, 'Copia 1', 'General', '2025-11-24 14:48:49', 'Disponible'),
-(2, 2, 'Copia 1', 'General', '2025-11-27 10:45:25', 'Prestado'),
+(2, 2, 'Copia 1', 'General', '2025-11-27 10:45:25', 'Disponible'),
 (3, 3, 'Copia 1', 'General', '2025-12-02 14:54:45', 'Baja'),
 (4, 4, 'Copia 1', 'General', '2025-12-03 00:42:24', 'Disponible'),
-(5, 5, 'Copia 1', 'General', '2025-12-04 10:55:07', 'Disponible');
+(5, 5, 'Copia 1', 'General', '2025-12-04 10:55:07', 'Baja'),
+(6, 6, 'Copia 1', 'General', '2025-12-11 15:55:02', 'Disponible');
 
 -- --------------------------------------------------------
 
@@ -148,9 +153,10 @@ CREATE TABLE `obras` (
 INSERT INTO `obras` (`id_obra`, `ficha_no`, `titulo`, `isbn`, `id_editorial`, `lugar_publicacion`, `autor_corporativo`, `asientos_secundarios`, `idioma`, `anio_publicacion`, `edicion`, `clasificacion`, `paginas`, `dimensiones`, `codigo_ilustracion`, `serie`, `tomo`, `volumen`, `descripcion`) VALUES
 (1, '1', 'Cuentos de terror', '', 1, '', '', '', 'SPA', 0, '', 'accion', 0, '', 'A,C,D', '', '', '', ''),
 (2, '1545', 'Cuento', '54', 1, '', '', '', 'Español', 0, '', '789', 0, '', 'X', '', '', '', ''),
-(3, '1001', 'Libro de eliminación', '1002', 2, 'Uno-dos', 'Corp', 'Lorem lipsum', 'Español', 2, 'Uno', 'PG18', 300, '30 x 50', 'X', 'Serie dos de tres DEMOS', '', '', 'En gran stadium'),
+(3, '1001', 'Libro de eliminación', '1002', 2, 'Uno-dos', 'Corp', 'Lorem lipsum', 'Español', 9, 'Si por favor', 'oro', 69, '30 x 50', 'X', NULL, '', '', 'No'),
 (4, '12152', 'Vista 1', '4684', 1, '', '', '', 'Español', 0, '', 'PG 16', 0, '', 'A', '', '', '', ''),
-(5, '456', 'libro 1', '', 1, '', '', '', 'Español', 0, '', 'PG18', 0, '', '', '', '', '', '');
+(5, '456', 'libro 1', '', 1, '', '', '', 'Español', 0, '', 'PG18', 0, '', '', '', '', '', ''),
+(6, '12', 'Quijote 2', '', 1, '', 'Corp', '', 'Español', 0, '', 'PG-18', 0, '', 'B', '', '', '', '');
 
 -- --------------------------------------------------------
 
@@ -174,7 +180,8 @@ CREATE TABLE `prestamos` (
 --
 
 INSERT INTO `prestamos` (`id_prestamo`, `id_prestatario`, `id_usuario_sistema`, `fecha_prestamo`, `fecha_devolucion_esperada`, `fecha_devolucion_real`, `estado`, `id_ejemplar`) VALUES
-(1, 1, 1, '2025-12-02 13:02:43', '2025-12-09', NULL, 'Activo', 2);
+(1, 1, 1, '2025-12-02 13:02:43', '2025-12-09', '2025-12-11 15:50:54', 'Finalizado', 2),
+(2, 1, 1, '2025-12-11 15:50:31', '2025-12-26', '2025-12-11 15:50:51', 'Finalizado', 4);
 
 -- --------------------------------------------------------
 
@@ -218,7 +225,29 @@ CREATE TABLE `usuarios_sistema` (
 --
 
 INSERT INTO `usuarios_sistema` (`id_usuario`, `nombre`, `usuario`, `password_hash`, `rol`, `activo`) VALUES
-(1, 'Administrador', 'admin', '12345', 'Admin', 1);
+(1, 'Administrador', 'admin', 'c7261839a7962c6f6badff13a2ca851af7dc061046218414ea5d5d8b71daa68d', 'Admin', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `visitantes`
+--
+
+CREATE TABLE `visitantes` (
+  `id_visita` int(11) NOT NULL,
+  `nombre_completo` varchar(150) DEFAULT 'Anónimo',
+  `procedencia` varchar(150) NOT NULL,
+  `area` varchar(50) NOT NULL,
+  `fecha_entrada` datetime DEFAULT current_timestamp(),
+  `sexo` varchar(20) DEFAULT 'No especificado'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `visitantes`
+--
+
+INSERT INTO `visitantes` (`id_visita`, `nombre_completo`, `procedencia`, `area`, `fecha_entrada`, `sexo`) VALUES
+(1, 'Paco', 'Escuela', 'Lectura', '2025-12-15 22:08:57', 'N/A');
 
 --
 -- Índices para tablas volcadas
@@ -280,6 +309,12 @@ ALTER TABLE `usuarios_sistema`
   ADD UNIQUE KEY `usuario` (`usuario`);
 
 --
+-- Indices de la tabla `visitantes`
+--
+ALTER TABLE `visitantes`
+  ADD PRIMARY KEY (`id_visita`);
+
+--
 -- AUTO_INCREMENT de las tablas volcadas
 --
 
@@ -287,7 +322,7 @@ ALTER TABLE `usuarios_sistema`
 -- AUTO_INCREMENT de la tabla `autores`
 --
 ALTER TABLE `autores`
-  MODIFY `id_autor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_autor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `editoriales`
@@ -299,19 +334,19 @@ ALTER TABLE `editoriales`
 -- AUTO_INCREMENT de la tabla `ejemplares`
 --
 ALTER TABLE `ejemplares`
-  MODIFY `id_ejemplar` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_ejemplar` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `obras`
 --
 ALTER TABLE `obras`
-  MODIFY `id_obra` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_obra` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `prestamos`
 --
 ALTER TABLE `prestamos`
-  MODIFY `id_prestamo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_prestamo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `solicitantes`
@@ -324,6 +359,12 @@ ALTER TABLE `solicitantes`
 --
 ALTER TABLE `usuarios_sistema`
   MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT de la tabla `visitantes`
+--
+ALTER TABLE `visitantes`
+  MODIFY `id_visita` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Restricciones para tablas volcadas

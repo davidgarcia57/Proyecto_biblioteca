@@ -1,210 +1,221 @@
 import customtkinter as ctk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from datetime import datetime
 import os
-from PIL import Image # Requiere: pip install pillow
+from PIL import Image
+from src.utils import resource_path
 
 class FrmRegistroVisitas(ctk.CTkFrame):
     def __init__(self, master, controller):
         super().__init__(master)
         self.controller = controller
         
-        # Configuración principal del frame
+        # --- CONFIGURACIÓN GENERAL ---
         self.configure(fg_color="#F3E7D2") # Fondo Beige
-        self.grid_columnconfigure(0, weight=1) # Panel Izquierdo
-        self.grid_columnconfigure(1, weight=1) # Panel Derecho
-        self.grid_rowconfigure(1, weight=1)    # Expansión vertical
+        
+        # Grid: 50% Izquierda (Formularios) | 50% Derecha (Instrucciones)
+        self.grid_columnconfigure(0, weight=1) 
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(1, weight=1) 
 
-        # --- HEADER (Título y Botón Volver) ---
+        # --- HEADER (Botón Volver Gigante) ---
         self.crear_header()
 
-        # --- PANEL IZQUIERDO: FORMULARIO DE REGISTRO ---
-        self.crear_panel_registro()
+        # --- PANEL IZQUIERDO: ACCIONES (REGISTRO + REPORTES) ---
+        self.crear_panel_izquierdo()
 
-        # --- PANEL DERECHO: LOGO Y REPORTES ---
-        self.crear_panel_reportes()
+        # --- PANEL DERECHO: AYUDA (LOGO + INSTRUCCIONES) ---
+        self.crear_panel_derecho()
 
     def crear_header(self):
         header = ctk.CTkFrame(self, fg_color="transparent")
-        header.grid(row=0, column=0, columnspan=2, sticky="ew", padx=20, pady=(15, 10))
+        header.grid(row=0, column=0, columnspan=2, sticky="ew", padx=30, pady=(20, 10))
         
+        # BOTÓN VOLVER (MÁS GRANDE)
         btn_volver = ctk.CTkButton(
-            header, text="⬅ Volver", width=90, height=35,
-            fg_color="#A7744A", hover_color="#8c5e3a",
-            font=("Arial", 13, "bold"),
+            header, 
+            text="⬅ VOLVER AL MENÚ", 
+            width=220,          # Más ancho
+            height=55,          # Más alto
+            fg_color="#8D6E63", 
+            hover_color="#6D4C41",
+            font=("Arial", 18, "bold"), # Letra más grande
             command=self.controller.volver_menu
         )
         btn_volver.pack(side="left")
         
         lbl_titulo = ctk.CTkLabel(
-            header, text="Control de Acceso y Visitas", 
-            font=("Georgia", 26, "bold"), text_color="#5a3b2e"
+            header, 
+            text="CONTROL DE ACCESO Y VISITAS", 
+            font=("Georgia", 32, "bold"), # Título Gigante
+            text_color="#5a3b2e"
         )
-        lbl_titulo.pack(side="left", padx=20)
+        lbl_titulo.pack(side="left", padx=40)
 
-    def crear_panel_registro(self):
-        # Frame contenedor
-        p_reg = ctk.CTkFrame(self, fg_color="white", corner_radius=20, border_width=1, border_color="#Decdbb")
-        p_reg.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
+    def crear_panel_izquierdo(self):
+        # Usamos un ScrollableFrame por si la pantalla es pequeña, para que quepa todo
+        p_izq = ctk.CTkScrollableFrame(self, fg_color="transparent", label_text="")
+        p_izq.grid(row=1, column=0, sticky="nsew", padx=(30, 15), pady=20)
         
-        # Título del panel
-        ctk.CTkLabel(p_reg, text="Registrar Nueva Entrada", font=("Arial", 18, "bold"), text_color="#A7744A").pack(pady=(25, 15))
+        # ==========================================
+        #           SECCIÓN 1: REGISTRO
+        # ==========================================
+        frame_reg = ctk.CTkFrame(p_izq, fg_color="white", corner_radius=20)
+        frame_reg.pack(fill="x", pady=(0, 20), ipadx=10, ipady=10)
+        
+        ctk.CTkLabel(frame_reg, text="1. Registrar Nueva Entrada", font=("Arial", 22, "bold"), text_color="#A7744A").pack(pady=(20, 15))
 
-        # --- CAMPO 1: NOMBRE ---
-        self.entry_nombre = ctk.CTkEntry(p_reg, placeholder_text="Nombre del Visitante (Opcional)", height=40, font=("Arial", 14))
-        self.entry_nombre.pack(fill="x", padx=30, pady=(5, 10))
+        # Entradas (LETRAS GRANDES)
+        self.entry_nombre = ctk.CTkEntry(frame_reg, placeholder_text="Nombre Completo", height=50, font=("Arial", 16))
+        self.entry_nombre.pack(fill="x", padx=30, pady=10)
         
-        # --- CAMPO 2: GÉNERO (NUEVO) ---
-        # Usamos un ComboBox para que seleccionen el sexo
-        self.combo_sexo = ctk.CTkComboBox(
-            p_reg, 
-            values=["Hombre", "Mujer", "Otro", "No especificar"], 
-            height=40, 
-            font=("Arial", 14),
-            state="readonly" # Para que no puedan escribir texto libre
-        )
-        self.combo_sexo.set("Seleccione Género") # Texto inicial
+        # Combo Sexo
+        self.combo_sexo = ctk.CTkComboBox(frame_reg, values=["Hombre", "Mujer", "Otro", "No especificar"], height=50, font=("Arial", 16), state="readonly")
+        self.combo_sexo.set("Seleccione Género")
         self.combo_sexo.pack(fill="x", padx=30, pady=10)
 
-        # --- CAMPO 3: PROCEDENCIA ---
-        self.entry_procedencia = ctk.CTkEntry(p_reg, placeholder_text="Procedencia (Escuela / Trabajo)", height=40, font=("Arial", 14))
+        self.entry_procedencia = ctk.CTkEntry(frame_reg, placeholder_text="Procedencia (Escuela / Trabajo)", height=50, font=("Arial", 16))
         self.entry_procedencia.pack(fill="x", padx=30, pady=10)
 
-        # SELECCIÓN DE ÁREA
-        ctk.CTkLabel(p_reg, text="Seleccione el Área a visitar:", font=("Arial", 13, "bold"), text_color="gray").pack(pady=(20, 5))
+        ctk.CTkLabel(frame_reg, text="Seleccione el Área a visitar:", font=("Arial", 18, "bold"), text_color="#555").pack(pady=(20, 10))
 
-        # Botones de Áreas
-        self.crear_btn_area(p_reg, "📖  Sala de Lectura", "Lectura", "#A7744A")
-        self.crear_btn_area(p_reg, "💻  Aula Virtual", "Virtual", "#8B5E3C") 
-        self.crear_btn_area(p_reg, "📝  Sala de Estudio", "Estudio", "#6F4E37") 
+        # Botones de Áreas (GIGANTES)
+        self.crear_btn_area(frame_reg, "📖  SALA DE LECTURA", "Lectura", "#A7744A")
+        self.crear_btn_area(frame_reg, "💻  AULA VIRTUAL", "Virtual", "#8B5E3C") 
+        self.crear_btn_area(frame_reg, "📝  SALA DE ESTUDIO", "Estudio", "#6F4E37") 
 
-        # Mensaje de estado
-        self.lbl_msg = ctk.CTkLabel(p_reg, text="", font=("Arial", 14, "bold"))
-        self.lbl_msg.pack(pady=20, side="bottom")
+        # Mensaje Exito/Error
+        self.lbl_msg = ctk.CTkLabel(frame_reg, text="", font=("Arial", 16, "bold"))
+        self.lbl_msg.pack(pady=10)
 
-    def evento_registrar(self, area):
-        # Obtenemos el valor del combo de sexo
-        sexo_seleccionado = self.combo_sexo.get()
+        # ==========================================
+        #           SECCIÓN 2: REPORTES
+        # ==========================================
+        frame_rep = ctk.CTkFrame(p_izq, fg_color="white", corner_radius=20)
+        frame_rep.pack(fill="x", ipadx=10, ipady=10)
+
+        ctk.CTkLabel(frame_rep, text="2. Generar Reportes PDF", font=("Arial", 22, "bold"), text_color="#A7744A").pack(pady=(20, 15))
+
+        # Filtros Fecha
+        f_fechas = ctk.CTkFrame(frame_rep, fg_color="#F9F5EB")
+        f_fechas.pack(fill="x", padx=20, pady=10)
         
-        # Validación: Si no ha seleccionado sexo, podemos poner un default o pedirlo
-        if sexo_seleccionado == "Seleccione Género":
-            sexo_seleccionado = "No especificado"
+        self.mi = self.crear_combo_fecha(f_fechas, "De:", 0, 0)
+        self.ai = self.crear_combo_fecha(f_fechas, "Año:", 0, 2, ["2024","2025","2026"])
+        self.mf = self.crear_combo_fecha(f_fechas, "A:", 1, 0)
+        self.af = self.crear_combo_fecha(f_fechas, "Año:", 1, 2, ["2024","2025","2026"])
 
-        datos = {
-            "nombre": self.entry_nombre.get(),
-            "sexo": sexo_seleccionado,  # <--- AQUI AGREGAMOS EL DATO FALTANTE
-            "procedencia": self.entry_procedencia.get(),
-            "area": area
-        }
+        # Botones Reporte
+        ctk.CTkButton(frame_rep, text="📄 REPORTE POR ÁREAS", height=50, fg_color="#5a3b2e", font=("Arial", 16, "bold"), command=self.evt_rep_areas).pack(fill="x", padx=30, pady=10)
+        ctk.CTkButton(frame_rep, text="📊 REPORTE TOTAL", height=50, fg_color="#5a3b2e", font=("Arial", 16, "bold"), command=self.evt_rep_total).pack(fill="x", padx=30, pady=10)
+
+    def crear_panel_derecho(self):
+        p_der = ctk.CTkFrame(self, fg_color="white", corner_radius=20, border_color="#Decdbb", border_width=2)
+        p_der.grid(row=1, column=1, sticky="nsew", padx=(15, 30), pady=20)
         
-        # Validación simple
-        if not datos["procedencia"]:
-            self.mostrar_exito("⚠ Falta Procedencia", error=True)
-            return
+        # --- LOGO (Arriba) ---
+        frame_logo = ctk.CTkFrame(p_der, fg_color="transparent")
+        frame_logo.pack(pady=(40, 20))
 
-        self.controller.registrar_entrada(datos)
-
-    def crear_panel_reportes(self):
-            # Frame contenedor
-            p_rep = ctk.CTkFrame(self, fg_color="white", corner_radius=20, border_width=1, border_color="#Decdbb")
-            p_rep.grid(row=1, column=1, sticky="nsew", padx=20, pady=20)
-
-            # --- SECCIÓN LOGO CORREGIDA ---
-            frame_logo = ctk.CTkFrame(p_rep, fg_color="transparent")
-            frame_logo.pack(pady=(20, 10), fill="x")
-
-            try:
-                import os
-                # Ajuste de ruta: Subimos 3 niveles (view -> circulacion -> src)
-                # __file__ = src/view/circulacion/frm_registro_visitas.py
-                base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-                        
-                # Ahora buscamos en src/resources/logo.png
-                ruta_real_logo = os.path.join(base_dir, "resources", "logo.png")
-                        
-                if os.path.exists(ruta_real_logo):
-                    img_pil = Image.open(ruta_real_logo)
-                    self.logo_img = ctk.CTkImage(light_image=img_pil, size=(150, 150)) 
-                            
-                    lbl_img = ctk.CTkLabel(frame_logo, image=self.logo_img, text="")
-                    lbl_img.pack()
-                else:
-                    # Debug visual si falla
-                    print(f"Buscando en: {ruta_real_logo}")
-                    ctk.CTkLabel(frame_logo, text="🏛️", font=("Arial", 80)).pack()
-
-            except Exception as e:
-                print(f"Error cargando imagen: {e}")
-
-            # --- RESTO DEL CÓDIGO (BOTONES DE REPORTES) ---
-            # (Esto se queda igual que como lo tenías)
-            ctk.CTkLabel(p_rep, text="Generación de Reportes", font=("Arial", 18, "bold"), text_color="#A7744A").pack(pady=10)
+        try:
+            ruta_logo = resource_path("resources/logo.png")
             
-            # Filtros de fecha y botones...
-            f_fechas = ctk.CTkFrame(p_rep, fg_color="#F9F5EB", corner_radius=10)
-            f_fechas.pack(pady=15, padx=20, fill="x")
-            f_fechas.grid_columnconfigure((0,1,2,3), weight=1)
+            if os.path.exists(ruta_logo):
+                img_pil = Image.open(ruta_logo)
+                self.logo_img = ctk.CTkImage(light_image=img_pil, size=(200, 200)) 
+                ctk.CTkLabel(frame_logo, image=self.logo_img, text="").pack(anchor="center")
+            else:
+                # Debug
+                print(f"Buscando logo en: {ruta_logo}")
+                ctk.CTkLabel(frame_logo, text="🏛️", font=("Arial", 100)).pack(anchor="center")
+        except Exception as e:
+            print(f"Error logo: {e}")
+            ctk.CTkLabel(frame_logo, text="🏛️", font=("Arial", 100)).pack(anchor="center")
 
-            self.mi = self.crear_combo_fecha(f_fechas, "De Mes:", 0, 0)
-            self.ai = self.crear_combo_fecha(f_fechas, "Año:", 0, 2, ["2024","2025","2026"])
-            self.mf = self.crear_combo_fecha(f_fechas, "A Mes:", 1, 0)
-            self.af = self.crear_combo_fecha(f_fechas, "Año:", 1, 2, ["2024","2025","2026"])
+        # --- INSTRUCCIONES (Abajo) ---
+        # Usamos un frame transparente contenedor para forzar el centrado vertical y horizontal
+        frame_inst = ctk.CTkFrame(p_der, fg_color="transparent")
+        frame_inst.pack(expand=True, fill="both", padx=20)
 
-            ctk.CTkFrame(p_rep, height=2, fg_color="#E0E0E0").pack(fill="x", padx=40, pady=15)
-
-            ctk.CTkButton(p_rep, text="📄 Guardar Reporte por Áreas", height=45, fg_color="#5a3b2e", hover_color="#3e281f",
-                        font=("Arial", 14), command=self.evt_rep_areas).pack(fill="x", padx=30, pady=10)
-            
-            ctk.CTkButton(p_rep, text="📊 Guardar Reporte Total", height=45, fg_color="#5a3b2e", hover_color="#3e281f",
-                        font=("Arial", 14), command=self.evt_rep_total).pack(fill="x", padx=30, pady=10)
-            
+        ctk.CTkLabel(frame_inst, text="GUÍA RÁPIDA", font=("Arial", 26, "bold"), text_color="#A7744A").pack(pady=(0, 20))
+        
+        texto_instrucciones = (
+            "PASO 1:\n"
+            "Escriba el nombre de la persona y seleccione\n"
+            "su género y procedencia (Escuela/Trabajo).\n\n"
+            "PASO 2:\n"
+            "Presione el botón café que corresponda\n"
+            "al área que van a visitar (Lectura, Virtual...).\n\n"
+            "PASO 3 (Reportes):\n"
+            "Para sacar un reporte, seleccione las fechas\n"
+            "abajo a la izquierda y presione 'Descargar'."
+        )
+        
+        lbl_inst = ctk.CTkLabel(
+            frame_inst, 
+            text=texto_instrucciones, 
+            font=("Arial", 20), 
+            text_color="#333333",
+            justify="center" # Centra el texto renglón por renglón
+        )
+        
+        # AJUSTE VISUAL: 'padx' asimétrico para empujarlo visualmente a la derecha si se siente a la izquierda
+        # (Izquierda: 80px, Derecha: 20px) -> Esto lo mueve a la derecha
+        lbl_inst.pack(anchor="center", padx=(80, 20), pady=10)
+        
+    # --- UTILIDADES ---
     def crear_btn_area(self, parent, texto, valor, color):
         ctk.CTkButton(
-            parent, text=texto, height=50, 
+            parent, text=texto, height=60, # Botones más altos
             fg_color=color, hover_color="#4A3B2A",
-            font=("Arial", 15, "bold"),
+            font=("Arial", 18, "bold"),
             command=lambda: self.evento_registrar(valor)
         ).pack(fill="x", padx=30, pady=8)
 
-    def crear_combo_fecha(self, parent, txt, r, c, vals=[str(i) for i in range(1,13)]):
-        ctk.CTkLabel(parent, text=txt, font=("Arial", 11)).grid(row=r, column=c, padx=5, pady=10, sticky="e")
-        cb = ctk.CTkComboBox(parent, values=vals, width=65, height=28, state="readonly")
+    def crear_combo_fecha(self, parent, txt, r, c, vals=[str(i).zfill(2) for i in range(1,13)]):
+        # Combos más grandes
+        ctk.CTkLabel(parent, text=txt, font=("Arial", 14, "bold")).grid(row=r, column=c, padx=5, pady=5, sticky="e")
+        cb = ctk.CTkComboBox(parent, values=vals, width=80, height=35, font=("Arial", 14), state="readonly")
         cb.set(vals[0])
-        cb.grid(row=r, column=c+1, padx=5, pady=10, sticky="w")
+        cb.grid(row=r, column=c+1, padx=5, pady=5, sticky="w")
         return cb
 
     def evento_registrar(self, area):
+        sexo = self.combo_sexo.get()
+        if sexo == "Seleccione Género": sexo = "No especificado"
+
         datos = {
             "nombre": self.entry_nombre.get(),
+            "sexo": sexo,
             "procedencia": self.entry_procedencia.get(),
             "area": area
         }
-        # Validación simple
+        
         if not datos["procedencia"]:
-            self.mostrar_exito("⚠ Falta Procedencia", error=True)
+            self.lbl_msg.configure(text="⚠ Falta Procedencia", text_color="#b03a2e")
             return
 
         self.controller.registrar_entrada(datos)
 
     def mostrar_exito(self, msg, error=False):
-        color = "#b03a2e" if error else "#1e8449" # Rojo o Verde
+        color = "#b03a2e" if error else "#1e8449"
         self.lbl_msg.configure(text=msg, text_color=color)
         self.after(3000, lambda: self.lbl_msg.configure(text=""))
 
     def limpiar_form(self):
-            self.entry_nombre.delete(0, 'end')
-            self.entry_procedencia.delete(0, 'end')
-            self.combo_sexo.set("Seleccione Género")
-            self.focus()
+        self.entry_nombre.delete(0, 'end')
+        self.entry_procedencia.delete(0, 'end')
+        self.combo_sexo.set("Seleccione Género")
+        self.focus()
 
     def evt_rep_areas(self):
-        nombre_default = f"Reporte_Areas_{datetime.now().strftime('%Y%m%d')}.pdf"
-        ruta = filedialog.asksaveasfilename(title="Guardar PDF", defaultextension=".pdf", initialfile=nombre_default)
-        if ruta:
-            self.controller.imprimir_reporte_areas(self.mi.get(), self.ai.get(), self.mf.get(), self.af.get(), ruta)
+        self.guardar_pdf(f"Visitas_Areas", lambda r: self.controller.imprimir_reporte_areas(self.mi.get(), self.ai.get(), self.mf.get(), self.af.get(), r))
 
     def evt_rep_total(self):
-        nombre_default = f"Reporte_Total_{datetime.now().strftime('%Y%m%d')}.pdf"
-        ruta = filedialog.asksaveasfilename(title="Guardar PDF", defaultextension=".pdf", initialfile=nombre_default)
+        self.guardar_pdf(f"Visitas_Total", lambda r: self.controller.imprimir_reporte_total(self.mi.get(), self.ai.get(), self.mf.get(), self.af.get(), r))
+
+    def guardar_pdf(self, nombre_base, funcion):
+        ruta = filedialog.asksaveasfilename(defaultextension=".pdf", initialfile=f"{nombre_base}.pdf")
         if ruta:
-            self.controller.imprimir_reporte_total(self.mi.get(), self.ai.get(), self.mf.get(), self.af.get(), ruta)
+            funcion(ruta)
+            messagebox.showinfo("Éxito", "Reporte generado.")

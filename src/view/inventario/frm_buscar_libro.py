@@ -2,228 +2,134 @@ import customtkinter as ctk
 from tkinter import StringVar, ttk
 
 class FrmBuscarLibro(ctk.CTkFrame):
-    
-    # --- PALETA DE COLORES ---
-    COLOR_FONDO = "#F3E7D2"
-    COLOR_TEXTO = "#000000" # Cambio a Negro puro para máximo contraste
-    COLOR_BOTON = "#A7744A"
-    COLOR_HOVER = "#8c5e3c"
-    
     def __init__(self, master, controller):
         super().__init__(master)
         self.controller = controller 
         
-        self.configure(fg_color=self.COLOR_FONDO)
+        self.configure(fg_color="#F3E7D2")
         
-        # 1. VARIABLE DE CONTROL (Búsqueda en Vivo)
+        # Grid: 30% Instrucciones (Izq) | 70% Tabla (Der)
+        self.grid_columnconfigure(0, weight=3)
+        self.grid_columnconfigure(1, weight=7)
+        self.grid_rowconfigure(1, weight=1)
+
         self.texto_busqueda = StringVar(value="")
         self.texto_busqueda.trace_add("write", self.al_escribir)
         self.id_busqueda_programada = None 
-        
-        # Grid principal 
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(2, weight=1) # La fila 2 (tabla) es la que se estira
 
-        # --- COMPONENTES ---
+        # --- HEADER ---
         self.crear_header()
-        self.crear_elementos_busqueda()
-        self.crear_tabla_resultados()
+
+        # --- PANELES ---
+        self.crear_panel_instrucciones(row=1, col=0)
+        self.crear_panel_catalogo(row=1, col=1)
 
     def crear_header(self):
-        header_frame = ctk.CTkFrame(self, fg_color="transparent")
-        header_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(20, 0))
+        header = ctk.CTkFrame(self, fg_color="transparent")
+        header.grid(row=0, column=0, columnspan=2, sticky="ew", padx=30, pady=(20, 10))
         
-        # Botón Volver (Estilo Grande)
-        self.btn_volver = ctk.CTkButton(
-            header_frame,
-            text="⬅ Volver",
-            font=("Arial", 18, "bold"), # Fuente grande
-            width=150,                  # Más ancho
-            height=50,                  # Más alto
-            fg_color="transparent",
-            text_color=self.COLOR_BOTON,
-            border_width=2,
-            border_color=self.COLOR_BOTON,
-            hover_color=self.COLOR_FONDO,
-            command=self.volver_menu
+        btn_volver = ctk.CTkButton(
+            header, text="⬅ VOLVER AL MENÚ", width=220, height=55,
+            fg_color="#8D6E63", hover_color="#6D4C41",
+            font=("Arial", 18, "bold"), command=self.volver_menu
         )
-        self.btn_volver.pack(side="left") 
+        btn_volver.pack(side="left")
+        
+        ctk.CTkLabel(header, text="CATÁLOGO DE LIBROS", font=("Georgia", 32, "bold"), text_color="#5a3b2e").pack(side="left", padx=40)
 
-    def crear_elementos_busqueda(self):
-        frame_busqueda = ctk.CTkFrame(self, fg_color="transparent")
-        frame_busqueda.grid(row=1, column=0, sticky="n", pady=(10, 20))
+    def crear_panel_instrucciones(self, row, col):
+        p_inst = ctk.CTkFrame(self, fg_color="white", corner_radius=20, border_color="#Decdbb", border_width=2)
+        p_inst.grid(row=row, column=col, sticky="nsew", padx=(30, 10), pady=20)
         
-        # Título Grande
-        self.lbl_titulo = ctk.CTkLabel(
-            frame_busqueda, 
-            text="Catálogo de Libros", 
-            font=("Arial", 32, "bold"), # Arial 32px para lectura fácil
-            text_color=self.COLOR_TEXTO
+        container = ctk.CTkFrame(p_inst, fg_color="transparent")
+        container.pack(expand=True, fill="both", padx=20)
+        
+        ctk.CTkLabel(container, text="GESTIÓN DE OBRAS", font=("Arial", 26, "bold"), text_color="#A7744A").pack(pady=(0, 30))
+        
+        texto = (
+            "🔍 BÚSQUEDA:\n"
+            "Escriba el título, autor o ISBN en la barra\n"
+            "superior derecha.\n\n"
+            "✏️ EDICIÓN:\n"
+            "Haga DOBLE CLIC sobre cualquier libro\n"
+            "de la tabla para editar sus datos.\n\n"
+            "➕ NUEVO:\n"
+            "Use el botón verde para registrar\n"
+            "una nueva adquisición."
         )
-        self.lbl_titulo.grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 15))
+        
+        ctk.CTkLabel(container, text=texto, font=("Arial", 20), text_color="#333333", justify="center").pack(anchor="center")
+        
+        # Botón Nuevo Libro (Movido aquí para mejor acceso)
+        ctk.CTkButton(container, text="➕ REGISTRAR NUEVO LIBRO", width=250, height=60,
+                      fg_color="#2E7D32", hover_color="#1B5E20", font=("Arial", 16, "bold"),
+                      command=self.evento_agregar).pack(side="bottom", pady=40)
 
-        # --- INPUT BÚSQUEDA GIGANTE ---
-        self.txt_busqueda = ctk.CTkEntry(
-            frame_busqueda, 
-            textvariable=self.texto_busqueda,
-            placeholder_text="Título, Autor o ISBN del libro...",
-            height=50,              # Altura aumentada (antes 40)
-            width=500,              # Ancho aumentado
-            fg_color="white", 
-            text_color="black",
-            border_color=self.COLOR_BOTON,
-            border_width=2,
-            font=("Arial", 18)      # Fuente 18px
-        )
-        self.txt_busqueda.grid(row=1, column=0, padx=(0, 15))
+    def crear_panel_catalogo(self, row, col):
+        p_cat = ctk.CTkFrame(self, fg_color="white", corner_radius=20)
+        p_cat.grid(row=row, column=col, sticky="nsew", padx=(10, 30), pady=20)
+        
+        # Barra de Búsqueda
+        f_top = ctk.CTkFrame(p_cat, fg_color="transparent")
+        f_top.pack(fill="x", padx=20, pady=20)
+        
+        self.txt_busqueda = ctk.CTkEntry(f_top, textvariable=self.texto_busqueda, placeholder_text="Escriba para buscar...",
+                                         height=50, font=("Arial", 16))
+        self.txt_busqueda.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        
+        ctk.CTkButton(f_top, text="🔍 BUSCAR", width=120, height=50, fg_color="#A7744A",
+                      font=("Arial", 14, "bold"), command=self.ejecutar_busqueda_ahora).pack(side="left")
 
-        # --- BOTONES DE ACCIÓN (Texto + Icono) ---
-        self.btn_buscar = ctk.CTkButton(
-            frame_busqueda,
-            text="🔍 BUSCAR",        # Texto explícito
-            width=140,
-            height=50,              # Altura accesible
-            font=("Arial", 16, "bold"),
-            fg_color=self.COLOR_BOTON,
-            hover_color=self.COLOR_HOVER,
-            text_color="white",
-            command=self.ejecutar_busqueda_ahora 
-        )
-        self.btn_buscar.grid(row=1, column=1)
-
-        self.btn_agregar = ctk.CTkButton(
-            frame_busqueda,
-            text="➕ Nuevo",          # Texto explícito
-            width=120,
-            height=50,
-            fg_color="#2E7D32",
-            hover_color="#1B5E20",
-            font=("Arial", 16, "bold"),
-            command=self.evento_agregar
-        )
-        self.btn_agregar.grid(row=1, column=2, padx=10)
-        self.btn_agregar = ctk.CTkButton(
-            frame_busqueda,
-            text="➕ Nuevo",
-            width=120,
-            height=50,
-            fg_color="#2E7D32",
-            hover_color="#1B5E20",
-            font=("Arial", 16, "bold"),
-            command=self.evento_agregar
-        )
-        self.btn_agregar.grid(row=1, column=2, padx=10)
+        # Tabla
+        f_tabla = ctk.CTkFrame(p_cat, fg_color="transparent")
+        f_tabla.pack(fill="both", expand=True, padx=20, pady=(0, 20))
         
-        # ==========================================
-        
-        # <--- NUEVO: Etiqueta de instrucción visual
-        self.lbl_tip = ctk.CTkLabel(
-            frame_busqueda, 
-            text="💡 Tip: Haz doble clic sobre un libro para editar sus datos", 
-            text_color="#555555",  # Gris oscuro para que se lea bien sobre beige
-            font=("Arial", 30, "italic")
-        )
-        # Lo ponemos en la fila 2 (debajo de los botones) y que ocupe las 3 columnas
-        self.lbl_tip.grid(row=2, column=0, columnspan=3, pady=(15, 0))
-    def crear_tabla_resultados(self):
-        # Frame contenedor
-        frame_tabla = ctk.CTkFrame(self, fg_color="white") # Fondo blanco para la tabla
-        frame_tabla.grid(row=2, column=0, sticky="nsew", padx=20, pady=(0, 20))
-        
-        # Configuración de Estilos Grandes
+        # Estilos Tabla
         style = ttk.Style()
         style.theme_use("clam")
+        style.configure("Treeview", background="white", foreground="black", rowheight=35, fieldbackground="white", font=("Arial", 12))
+        style.configure("Treeview.Heading", background="#A7744A", foreground="white", font=("Arial", 14, "bold"))
+        style.map("Treeview", background=[('selected', '#8c5e3c')])
+
+        cols = ("id", "titulo", "isbn", "autor", "anio", "editorial", "disp")
+        self.tree = ttk.Treeview(f_tabla, columns=cols, show="headings", selectmode="browse")
         
-        style.configure("Treeview", 
-                        background="white",
-                        foreground="black",
-                        rowheight=40,           # Filas altas (40px)
-                        fieldbackground="white",
-                        font=("Arial", 14))     # Fuente del contenido (14px)
-                        
-        style.configure("Treeview.Heading", 
-                        background=self.COLOR_BOTON,
-                        foreground="white",
-                        font=("Arial", 16, "bold")) # Cabeceras grandes (16px)
-                        
-        style.map("Treeview", background=[('selected', self.COLOR_HOVER)])
-
-        # Columnas (Mismos datos)
-        columns = ("id", "titulo", "isbn", "autor", "anio", "editorial", "disp")
-        self.tree = ttk.Treeview(frame_tabla, columns=columns, show="headings", selectmode="browse")
+        cabeceras = {"id":"ID", "titulo":"Título", "isbn":"ISBN", "autor":"Autor", "anio":"Año", "editorial":"Edit.", "disp":"Estado"}
+        anchos = {"id":50, "titulo":250, "isbn":100, "autor":150, "anio":60, "editorial":100, "disp":120}
         
-        # Cabeceras
-        self.tree.heading("id", text="ID")
-        self.tree.heading("titulo", text="Título")
-        self.tree.heading("isbn", text="ISBN")
-        self.tree.heading("autor", text="Autor")
-        self.tree.heading("anio", text="Año")
-        self.tree.heading("editorial", text="Editorial")
-        self.tree.heading("disp", text="Disponibilidad")
+        for c, t in cabeceras.items():
+            self.tree.heading(c, text=t)
+            self.tree.column(c, width=anchos[c])
 
-        # Anchos (Ajustados ligeramente para la fuente más grande)
-        self.tree.column("id", width=50, anchor="center")
-        self.tree.column("titulo", width=300) # Más espacio para título
-        self.tree.column("isbn", width=120)
-        self.tree.column("autor", width=200)  # Más espacio para autor
-        self.tree.column("anio", width=70, anchor="center")
-        self.tree.column("editorial", width=150)
-        self.tree.column("disp", width=150, anchor="center")
-
-        # Scrollbar (Usamos CTkScrollbar que es más estilizable y ancho)
-        scrollbar = ctk.CTkScrollbar(frame_tabla, orientation="vertical", command=self.tree.yview, width=22)
-        self.tree.configure(yscroll=scrollbar.set)
+        sb = ctk.CTkScrollbar(f_tabla, orientation="vertical", command=self.tree.yview)
+        self.tree.configure(yscroll=sb.set)
         
         self.tree.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
-        
+        sb.pack(side="right", fill="y")
         self.tree.bind("<Double-1>", self.evento_doble_clic)
 
-    # --- LÓGICA DE BÚSQUEDA (INTACTA) ---
+    # --- LÓGICA PRESERVADA ---
     def al_escribir(self, *args):
-        if self.id_busqueda_programada:
-            self.after_cancel(self.id_busqueda_programada)
+        if self.id_busqueda_programada: self.after_cancel(self.id_busqueda_programada)
         self.id_busqueda_programada = self.after(300, self.ejecutar_busqueda_ahora)
 
     def ejecutar_busqueda_ahora(self):
-        termino = self.texto_busqueda.get()
-        if self.controller:
-            self.controller.realizar_busqueda(termino)
+        if self.controller: self.controller.realizar_busqueda(self.texto_busqueda.get())
 
-    def mostrar_resultados(self, lista_resultados):
+    def mostrar_resultados(self, lista):
         self.tree.delete(*self.tree.get_children())
-            
-        if lista_resultados:
-            for row in lista_resultados:
-                id_obra = row[0]
-                titulo = row[1]
-                isbn = row[2] if row[2] else ""
-                autor = row[3] if row[3] else "Desconocido"
-                anio = row[4] if row[4] else ""
-                editorial = row[5] if row[5] else "Sin Editorial"
-                disponibles = row[6]
-                total = row[7]
-                
-                estado_str = f"{disponibles} de {total} Disp."
-                if disponibles == 0:
-                    estado_str = "AGOTADO / PRESTADO"
-
-                valores = (id_obra, titulo, isbn, autor, anio, editorial, estado_str)
-                self.tree.insert("", "end", values=valores)
+        if lista:
+            for row in lista:
+                disp, tot = row[6], row[7]
+                estado = f"{disp} de {tot} Disp." if disp > 0 else "AGOTADO"
+                self.tree.insert("", "end", values=(row[0], row[1], row[2] or "", row[3] or "S/A", row[4] or "", row[5] or "", estado))
 
     def volver_menu(self):
-        if self.controller:
-            self.controller.volver_al_menu()
+        if self.controller: self.controller.volver_al_menu()
 
     def evento_doble_clic(self, event):
-        item_id = self.tree.selection()
-        if item_id:
-            item = self.tree.item(item_id)
-            valores = item['values']
-            id_obra = valores[0]
-            if self.controller:
-                self.controller.abrir_ficha_libro(id_obra)
+        item = self.tree.selection()
+        if item and self.controller: self.controller.abrir_ficha_libro(self.tree.item(item)['values'][0])
 
     def evento_agregar(self):
-        if self.controller:
-            self.controller.ir_a_agregar_libro()
+        if self.controller: self.controller.ir_a_agregar_libro()

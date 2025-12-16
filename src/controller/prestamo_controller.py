@@ -16,6 +16,11 @@ class PrestamoController:
         self.on_close = on_close
         self.db = ConexionBD()
         
+        # Variables para almacenar los IDs seleccionados (ya que no hay Entrys visibles)
+        self.id_libro_seleccionado = None
+        self.id_lector_seleccionado = None
+        
+        # Cargamos la nueva vista
         self.view = FrmPrestamos(view_container, self)
 
     def volver_menu(self):
@@ -23,16 +28,14 @@ class PrestamoController:
             self.on_close()
 
     # =========================================================================
-    # LÓGICA DE LA LISTA DE PRÉSTAMOS
+    # LÓGICA DE LA LISTA DE PRÉSTAMOS (DEVOLUCIONES)
     # =========================================================================
     
     def iniciar_lista_prestamos(self):
         for widget in self.view_container.winfo_children():
             widget.destroy()
-            
         self.view = FrmListaPrestamos(self.view_container, self)
         self.view.pack(fill="both", expand=True)
-        
         self.cargar_lista_activos()
 
     def cargar_lista_activos(self):
@@ -43,15 +46,11 @@ class PrestamoController:
         conn = self.db.conectar()
         if conn:
             try:
-                # --- CORRECCIÓN AQUÍ ---
-                conn.begin() # En PyMySQL se usa begin(), no start_transaction()
-                
+                conn.begin()
                 Prestamo.finalizar_prestamo(conn, id_prestamo, id_ejemplar)
-                
                 conn.commit()
                 messagebox.showinfo("Éxito", "Libro devuelto correctamente.")
                 self.cargar_lista_activos() 
-                
             except Exception as e:
                 conn.rollback()
                 messagebox.showerror("Error", f"Error en devolución: {e}")
@@ -59,82 +58,28 @@ class PrestamoController:
                 conn.close()
 
     # =========================================================================
-    # LÓGICA DE NUEVO PRÉSTAMO
-    # =========================================================================
-
-    def verificar_libro(self, id_ejemplar):
-        res = Ejemplar.actualizar_estado(id_ejemplar)
-        if res:
-            titulo, estado = res
-            is_ok = (estado == 'Disponible')
-            msg = f"✔ {titulo}" if is_ok else f"⚠ {titulo} ({estado})"
-            
-            if hasattr(self.view, 'actualizar_info_libro'):
-                self.view.actualizar_info_libro(msg, is_ok)
-            return is_ok
-        else:
-            if hasattr(self.view, 'actualizar_info_libro'):
-                self.view.actualizar_info_libro("❌ ID no encontrado", False)
-            return False
-
-    def verificar_solicitante(self, id_solicitante):
-        nombre = Solicitante.obtener_nombre(id_solicitante)
-        if nombre:
-            if hasattr(self.view, 'actualizar_info_usuario'):
-                self.view.actualizar_info_usuario(f"✔ {nombre}", True)
-            return True
-        else:
-            if hasattr(self.view, 'actualizar_info_usuario'):
-                self.view.actualizar_info_usuario("❌ Usuario no encontrado", False)
-            return False
-
-    def registrar_prestamo(self, id_ejemplar, id_solicitante, dias):
-        if not id_ejemplar or not id_solicitante:
-            messagebox.showwarning("Faltan datos", "Ingrese ID de Libro y Solicitante")
-            return
-
-        dias = int(dias)
-        fecha_dev = datetime.now() + timedelta(days=dias)
-
-        conn = self.db.conectar()
-        if conn:
-            try:
-                # --- CORRECCIÓN AQUÍ ---
-                conn.begin() # Cambiado de start_transaction() a begin()
-                
-                cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM prestamos WHERE id_prestatario = %s AND estado = 'Activo'", (id_solicitante,))
-                if cursor.fetchone()[0] >= 3:
-                    messagebox.showwarning("Límite excedido", "El lector ya tiene 3 préstamos activos.")
-                    conn.rollback()
-                    return
-
-                nuevo = Prestamo(id_solicitante, self.usuario_sistema.id_usuario, id_ejemplar, fecha_dev)
-                id_gen = nuevo.guardar(conn)
-                
-                conn.commit() 
-                
-                messagebox.showinfo("Éxito", f"Préstamo #{id_gen} registrado.")
-                
-                if hasattr(self.view, 'limpiar_form'):
-                    self.view.limpiar_form() 
-                
-            except Exception as e:
-                conn.rollback()
-                print(e) # Imprimimos en consola para ver detalle si falla
-                messagebox.showerror("Error", f"Error al prestar: {e}")
-            finally:
-                conn.close()
-
-    # =========================================================================
-    # POPUPS
+    # LÓGICA DE NUEVO PRÉSTAMO (ADAPTADA A LA NUEVA VISTA)
     # =========================================================================
 
     def abrir_busqueda_libros(self):
         def al_seleccionar(id_sel):
-            self.view.txt_id_libro.delete(0, 'end')
-            self.view.txt_id_libro.insert(0, str(id_sel))
-            self.verificar_libro(id_sel)
+            self.id_libro_seleccionado = id_sel
+            
+            # Consultamos datos para mostrar título en el Label
+            info = Ejemplar.obtener_info(id_sel)
+            if info:
+                titulo = info['titulo']
+                estado = info['estado']
+                
+                # Advertencia si no está disponible
+                if estado != 'Disponible':
+                    self.view.actualizar_libro(f"⚠️ {titulo} ({estado})")
+                    self.id_libro_seleccionado = None # Invalidamos selección
+                    messagebox.showwarning("No disponible", f"El libro seleccionado está {estado}.")
+                else:
+                    self.view.actualizar_libro(titulo)
+            else:
+                self.view.actualizar_libro("ID Desconocido")
 
         self.popup = FrmBusqueda(self.view, al_seleccionar, tipo="libro")
         self.popup.configurar_busqueda(self.buscar_libros_bd)
@@ -145,9 +90,12 @@ class PrestamoController:
 
     def abrir_busqueda_lectores(self):
         def al_seleccionar(id_sel):
-            self.view.txt_id_usuario.delete(0, 'end')
-            self.view.txt_id_usuario.insert(0, str(id_sel))
-            self.verificar_solicitante(id_sel)
+            self.id_lector_seleccionado = id_sel
+            nombre = Solicitante.obtener_nombre(id_sel)
+            if nombre:
+                self.view.actualizar_usuario(nombre)
+            else:
+                self.view.actualizar_usuario("Desconocido")
 
         self.popup_lec = FrmBusqueda(self.view, al_seleccionar, tipo="lector")
         self.popup_lec.configurar_busqueda(self.buscar_lectores_bd)
@@ -155,3 +103,49 @@ class PrestamoController:
     def buscar_lectores_bd(self, termino):
         datos = Solicitante.buscar_por_termino(termino)
         self.popup_lec.cargar_datos(datos)
+
+    def realizar_prestamo(self):
+        # Validaciones usando las variables internas
+        if not self.id_libro_seleccionado:
+            messagebox.showwarning("Faltan datos", "Por favor, seleccione un libro.")
+            return
+        if not self.id_lector_seleccionado:
+            messagebox.showwarning("Faltan datos", "Por favor, seleccione un lector.")
+            return
+
+        dias = 7 # Plazo fijo de 7 días
+        fecha_dev = datetime.now() + timedelta(days=dias)
+
+        conn = self.db.conectar()
+        if conn:
+            try:
+                conn.begin()
+                cursor = conn.cursor()
+                
+                # 1. Verificar límite de 3 libros
+                cursor.execute("SELECT COUNT(*) FROM prestamos WHERE id_prestatario = %s AND estado = 'Activo'", (self.id_lector_seleccionado,))
+                count = cursor.fetchone()[0]
+                if count >= 3:
+                    messagebox.showwarning("Límite excedido", "El lector ya tiene 3 préstamos activos.\nDebe devolver uno antes de solicitar otro.")
+                    conn.rollback()
+                    return
+
+                # 2. Registrar
+                nuevo = Prestamo(self.id_lector_seleccionado, self.usuario_sistema.id_usuario, self.id_libro_seleccionado, fecha_dev)
+                id_gen = nuevo.guardar(conn)
+                
+                conn.commit() 
+                messagebox.showinfo("Éxito", f"Préstamo #{id_gen} registrado exitosamente.")
+                
+                # 3. Limpiar Interfaz
+                self.id_libro_seleccionado = None
+                self.id_lector_seleccionado = None
+                self.view.actualizar_libro("Ningún libro seleccionado")
+                self.view.actualizar_usuario("Ningún lector seleccionado")
+                
+            except Exception as e:
+                conn.rollback()
+                print(e)
+                messagebox.showerror("Error", f"Error al prestar: {e}")
+            finally:
+                conn.close()

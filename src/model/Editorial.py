@@ -20,3 +20,10 @@ class Editorial:
             self.id_editorial = cursor.lastrowid
         
         return self.id_editorial
+    
+    @staticmethod
+    def obtener_id_por_nombre(cursor, nombre):
+        sql = "SELECT id_editorial FROM editoriales WHERE nombre = %s"
+        cursor.execute(sql, (nombre,))
+        resultado = cursor.fetchone()
+        return resultado[0] if resultado else None

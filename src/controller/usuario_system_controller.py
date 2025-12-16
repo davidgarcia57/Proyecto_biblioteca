@@ -2,15 +2,15 @@ from src.view.admin.frm_usuarios_sistema import FrmUsuariosSistema
 from src.model.Usuario import Usuario
 from tkinter import messagebox
 import hashlib
+
 class UsuarioSystemController:
-    def __init__(self, view_container, on_close=None):
+    # Agregamos id_usuario_sesion al init
+    def __init__(self, view_container, id_usuario_sesion, on_close=None):
         self.view_container = view_container
         self.on_close = on_close
+        self.id_usuario_sesion = id_usuario_sesion # Guardamos quién está logueado
         
-        # Inicializamos la vista
         self.view = FrmUsuariosSistema(view_container, self)
-        
-        # Cargamos los datos iniciales
         self.cargar_tabla()
 
     def volver_menu(self):
@@ -22,62 +22,65 @@ class UsuarioSystemController:
         self.view.limpiar_tabla()
         for u in usuarios:
             estado = "Activo" if u.activo == 1 else "Inactivo"
-            self.view.agregar_fila(u.id_usuario, u.nombre, u.usuario, u.rol, estado)
+            # Mostramos visualmente quién es el usuario actual en la tabla
+            nombre_mostrar = u.nombre
+            if u.id_usuario == self.id_usuario_sesion:
+                nombre_mostrar += " (TÚ)"
+                
+            self.view.agregar_fila(u.id_usuario, nombre_mostrar, u.usuario, u.rol, estado)
 
-    def guardar_usuario(self, datos, id_actual=None):
-        # --- LÓGICA DE VALIDACIÓN (Movida desde la vista) ---
-        
-        # 1. Campos obligatorios básicos
+    def guardar_usuario(self, datos, id_editar=None):
+        # 1. Validaciones
         if not datos["nombre"] or not datos["usuario"] or not datos["rol"]:
-            messagebox.showerror("Error", "Nombre, Usuario y Rol son campos obligatorios")
+            messagebox.showerror("Error", "Nombre, Usuario y Rol son obligatorios")
             return
 
         p1 = datos["password"]
         p2 = datos["confirm_pass"]
 
-        # 2. Coincidencia de contraseñas
-        # (Solo validamos si el usuario escribió algo en los campos de contraseña)
-        if (p1 or p2) and (p1 != p2):
-            messagebox.showerror("Error de Seguridad", "Las contraseñas no coinciden.\nPor favor verifíquelas.")
+        # Si es nuevo, la contraseña es obligatoria
+        if not id_editar and not p1:
+            messagebox.showerror("Error", "La contraseña es obligatoria para nuevos usuarios")
             return
 
-        # 3. Obligatoriedad de contraseña para NUEVOS usuarios
-        # Si es nuevo (id_actual es None) y no puso contraseña
-        if not id_actual and not p1:
-            messagebox.showerror("Error", "Debe asignar una contraseña al nuevo usuario.")
+        if p1 != p2:
+            messagebox.showerror("Error", "Las contraseñas no coinciden")
             return
-        
-        # --- 4. ENCRIPTACIÓN (AQUÍ ESTÁ LA MAGIA) --- # <--- NUEVO BLOQUE
-        pass_final = None
+
+        pass_hash = None
         if p1:
-            # Convertimos "hola" -> "d3018..." (SHA-256)
-            pass_final = hashlib.sha256(p1.encode()).hexdigest()
-        # ----------------------------------------------
+            pass_hash = hashlib.sha256(p1.encode()).hexdigest()
 
-        # --- CREACIÓN DEL MODELO ---
+        # 2. Crear objeto
         nuevo_user = Usuario(
-            id_usuario=id_actual,
+            id_usuario=id_editar,
             nombre=datos["nombre"],
             usuario=datos["usuario"],
-            password_hash=pass_final, # El modelo sabrá si guardarla o ignorarla (si está vacía en edición)
+            password_hash=pass_hash,
             rol=datos["rol"],
             activo=datos["activo"]
         )
 
-        # --- PERSISTENCIA ---
+        # 3. Guardar
         if nuevo_user.guardar():
-            # Si es edición y hubo cambio de contraseña, actualizamos con el HASH
-            if id_actual and pass_final:
-                Usuario.cambiar_password(id_actual, pass_final) 
-                
+            # Si el usuario se editó a sí mismo y cambió su pass, aquí podríamos avisarle
+            if id_editar == self.id_usuario_sesion and pass_hash:
+                 messagebox.showinfo("Aviso", "Has cambiado tu propia contraseña.\nÚsala la próxima vez que inicies sesión.")
+            
             messagebox.showinfo("Éxito", "Usuario guardado correctamente")
             self.view.limpiar_formulario()
             self.cargar_tabla()
         else:
-            messagebox.showerror("Error", "No se pudo guardar.\nEs posible que el nombre de usuario ya exista.")
+            messagebox.showerror("Error", "No se pudo guardar (El usuario ya existe o error de BD)")
 
-    def eliminar_usuario(self, id_usuario):
-        if Usuario.eliminar(id_usuario):
+    def eliminar_usuario(self, id_usuario_a_eliminar):
+        # --- PROTECCIÓN ANTI-SUICIDIO ---
+        # Convertimos a string por seguridad al comparar
+        if str(id_usuario_a_eliminar) == str(self.id_usuario_sesion):
+            messagebox.showwarning("Acción Denegada", "❌ No puedes eliminar tu propia cuenta mientras estás conectado.")
+            return
+        
+        if Usuario.eliminar(id_usuario_a_eliminar):
             messagebox.showinfo("Éxito", "Usuario eliminado del sistema.")
             self.view.limpiar_formulario()
             self.cargar_tabla()

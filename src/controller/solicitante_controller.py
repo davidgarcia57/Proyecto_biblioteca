@@ -1,6 +1,5 @@
 from src.view.circulacion.frm_solicitantes import FrmSolicitantes
 from src.model.Solicitantes import Solicitante
-# Importamos el controlador de reportes aquí, donde pertenece la lógica de orquestación
 from src.controller.reportes_controller import ReportesController 
 from tkinter import messagebox
 import re
@@ -11,27 +10,33 @@ class SolicitanteController:
         self.on_close = on_close
         # Instanciamos la vista
         self.view = FrmSolicitantes(view_container, self)
-        # Carga inicial de datos
-        self.cargar_lista()
+        # Carga inicial
+        self.listar_solicitantes()
 
     def volver_menu(self):
         if self.on_close:
             self.on_close()
 
-    def cargar_lista(self):
+    def listar_solicitantes(self):
         """Obtiene datos del modelo y actualiza la vista."""
-        solicitantes = Solicitante.obtener_todos()
-        # Pasamos los objetos o tuplas a la vista para que los pinte
-        # (La vista FrmSolicitantes espera objetos Solicitante, ajustamos la vista para recibir tuplas si fuera necesario, 
-        # pero aquí FrmSolicitantes.crear_panel_tabla usa atributos, así que pasamos lista de objetos).
-        
-        # Nota: Para mantener compatibilidad con tu FrmSolicitantes actual, 
-        # llenaremos la tabla manualmente aquí o crearemos un método en la vista.
-        # Lo ideal es crear un método en la vista:
-        self.view.actualizar_tabla(solicitantes)
+        try:
+            # Esto devuelve una lista de OBJETOS Solicitante
+            solicitantes = Solicitante.obtener_todos()
+            # La vista ahora sabe cómo leer esos objetos
+            self.view.actualizar_tabla(solicitantes)
+        except Exception as e:
+            print(f"Error al listar: {e}")
 
-    def guardar_solicitante(self, datos, id_actual=None):
-        """Valida datos y guarda en BD."""
+    def agregar_solicitante(self, data):
+        """Recibe los datos de la vista para crear uno nuevo"""
+        self._procesar_guardado(data)
+
+    def actualizar_solicitante(self, data):
+        """Recibe los datos de la vista para actualizar"""
+        self._procesar_guardado(data, id_actual=data.get('id'))
+
+    def _procesar_guardado(self, datos, id_actual=None):
+        """Validación y Guardado centralizado"""
         
         # 1. Validar Email con Regex
         patron_email = r'^[\w\.-]+@[\w\.-]+\.\w+$'
@@ -39,7 +44,7 @@ class SolicitanteController:
             messagebox.showerror("Error", "El formato del correo electrónico no es válido.")
             return
         
-        # 2. Validar Teléfono
+        # 2. Validar Teléfono (Solo números, 10 dígitos)
         if datos["telefono"] and (not datos["telefono"].isdigit() or len(datos["telefono"]) != 10):
             messagebox.showerror("Error", "El teléfono debe ser de 10 dígitos numéricos.")
             return
@@ -50,32 +55,36 @@ class SolicitanteController:
             return
 
         # 4. Crear Modelo
-        nuevo = Solicitante(
-            nombre_completo=datos["nombre"],
-            telefono=datos["telefono"],
-            email=datos["email"],
-            direccion=datos["direccion"],
-            id_prestatario=id_actual
-        )
+        try:
+            nuevo = Solicitante(
+                nombre_completo=datos["nombre"],
+                telefono=datos["telefono"],
+                email=datos["email"],
+                direccion=datos["direccion"],
+                id_prestatario=id_actual
+            )
 
-        # 5. Guardar
-        if nuevo.guardar():
-            messagebox.showinfo("Éxito", "Solicitante guardado correctamente")
-            self.view.limpiar_form()
-            self.cargar_lista() # Recargar la tabla
-        else:
-            messagebox.showerror("Error", "No se pudo guardar en la base de datos")
+            # 5. Guardar
+            if nuevo.guardar(): 
+                accion = "actualizado" if id_actual else "registrado"
+                messagebox.showinfo("Éxito", f"Lector {accion} correctamente")
+                self.view.limpiar_form()
+                self.listar_solicitantes() # Refrescamos la tabla
+            else:
+                messagebox.showerror("Error", "No se pudo guardar en la base de datos")
+        except Exception as e:
+            messagebox.showerror("Error crítico", f"Ocurrió un error: {e}")
 
     def eliminar_solicitante(self, id_solicitante):
+        # Este método es útil tenerlo aunque no se use en el botón principal
         if Solicitante.eliminar(id_solicitante):
             messagebox.showinfo("Eliminado", "Solicitante eliminado.")
             self.view.limpiar_form()
-            self.cargar_lista()
+            self.listar_solicitantes()
         else:
             messagebox.showerror("Error", "No se pudo eliminar (Tal vez tiene préstamos activos).")
 
     def imprimir_reporte(self):
-        """Coordina la generación del reporte PDF."""
         try:
             ReportesController().generar_reporte_solicitantes()
         except Exception as e:

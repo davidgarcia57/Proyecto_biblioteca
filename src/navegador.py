@@ -21,6 +21,7 @@ class ControladorNavegacionSimple:
     """
     def __init__(self, router):
         self.router = router
+
     def volver_menu(self):
         self.router.mostrar_menu_principal()
 
@@ -124,7 +125,16 @@ class Router:
 
     def mostrar_usuarios_sistema(self):
         self.limpiar_contenedor()
-        controller = UsuarioSystemController(self.container, on_close=self.mostrar_menu_principal)
+        
+        # Obtenemos el ID del usuario que está logueado actualmente
+        id_actual = self.app.usuario_actual.id_usuario
+        
+        # Se lo pasamos al controlador
+        controller = UsuarioSystemController(
+            self.container, 
+            id_usuario_sesion=id_actual, # <--- NUEVO PARÁMETRO
+            on_close=self.mostrar_menu_principal
+        )
         controller.view.pack(fill="both", expand=True)
 
     def mostrar_registro_visitas(self):

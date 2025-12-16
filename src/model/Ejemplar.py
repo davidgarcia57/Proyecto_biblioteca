@@ -128,7 +128,6 @@ class Ejemplar:
                 conn.close()
         return datos
 
-    # --- MÉTODO PARA VALIDACIÓN EN PRÉSTAMOS ---
     def actualizar_estado(self, nuevo_estado):
         db = ConexionBD()
         conn = db.conectar()
@@ -158,3 +157,55 @@ class Ejemplar:
             finally:
                 conn.close()
         return exito
+
+    @staticmethod
+    def obtener_reporte_detallado(fecha_ini, fecha_fin):
+        """
+        Trae TODOS los datos de los libros para el reporte detallado.
+        """
+        db = ConexionBD()
+        conn = db.conectar()
+        datos = []
+        if conn:
+            try:
+                cursor = conn.cursor()
+                
+                # --- CORRECCIÓN AQUÍ: Usar %% en lugar de % dentro del SQL ---
+                sql = """
+                    SELECT 
+                        e.id_ejemplar,
+                        o.titulo,
+                        IFNULL(a.nombre_completo, 'Anónimo') as autor,
+                        ed.nombre as editorial,
+                        o.isbn,
+                        o.anio_publicacion,
+                        o.edicion,
+                        o.paginas,
+                        o.dimensiones,
+                        e.ubicacion_fisica,
+                        e.estado,
+                        DATE_FORMAT(e.fecha_adquisicion, '%%Y-%%m-%%d') as fecha 
+                    FROM ejemplares e
+                    JOIN obras o ON e.id_obra = o.id_obra
+                    LEFT JOIN editoriales ed ON o.id_editorial = ed.id_editorial
+                    LEFT JOIN (
+                        SELECT ao.id_obra, MIN(aut.nombre_completo) as nombre_completo
+                        FROM autores_obras ao
+                        JOIN autores aut ON ao.id_autor = aut.id_autor
+                        GROUP BY ao.id_obra
+                    ) a ON o.id_obra = a.id_obra
+                    WHERE e.fecha_adquisicion BETWEEN %s AND %s
+                    ORDER BY e.fecha_adquisicion DESC
+                """
+                # Nota: '%%Y-%%m-%%d' es necesario porque Python usa % para parámetros
+                
+                f_ini = f"{fecha_ini}-01 00:00:00"
+                f_fin = f"{fecha_fin}-31 23:59:59" 
+                
+                cursor.execute(sql, (f_ini, f_fin))
+                datos = cursor.fetchall()
+            except Exception as e:
+                print(f"Error reporte detallado: {e}")
+            finally:
+                conn.close()
+        return datos

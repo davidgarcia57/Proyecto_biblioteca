@@ -82,6 +82,16 @@ class FrmMenuPrincipal(ctk.CTkFrame):
         self.crear_boton_menu(self.frm_nav, " 📊 Reportes", self.controller.mostrar_reportes_avanzados)
         self.crear_boton_menu(self.frm_nav, " 🚶 Visitas", self.controller.mostrar_registro_visitas)
 
+        # === INICIO DEL CAMBIO ===
+        # Si el usuario es Administrador, le mostramos el botón de gestión de usuarios
+        if self.rol_limpio in ["admin", "administrador"]:
+             # Opcional: Un pequeño separador visual
+             ctk.CTkFrame(self.frm_nav, height=2, fg_color="#D7CCC8").pack(fill="x", padx=20, pady=10)
+             
+             # El botón que lleva a la pantalla de usuarios
+             self.crear_boton_menu(self.frm_nav, " ⚙️ Usuarios", self.controller.mostrar_usuarios_sistema)
+        # === FIN DEL CAMBIO ===
+
         # NOTA: Se eliminó el botón de configuración de aquí (sidebar inferior)
 
         # =================================================

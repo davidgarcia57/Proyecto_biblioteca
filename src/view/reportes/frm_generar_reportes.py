@@ -55,15 +55,21 @@ class FrmGenerarReportes(ctk.CTkFrame):
             self.main_controller.volver_menu()
 
     def crear_panel_instrucciones(self, row, col):
-        frame_inst = ctk.CTkFrame(self, fg_color="white", corner_radius=20)
+        # 1. Marco con Borde (Igual que en Visitas)
+        frame_inst = ctk.CTkFrame(self, fg_color="white", corner_radius=20, border_color="#Decdbb", border_width=2)
         frame_inst.grid(row=row, column=col, sticky="nsew", padx=(20, 10), pady=10)
         
+        # 2. Container Transparente (Para centrado vertical y horizontal perfecto)
+        container = ctk.CTkFrame(frame_inst, fg_color="transparent")
+        container.pack(expand=True, fill="both", padx=20)
+        
+        # Título
         ctk.CTkLabel(
-            frame_inst, 
+            container, 
             text="¿Cómo generar un reporte?", 
             font=("Arial", 26, "bold"), 
             text_color="#A7744A"
-        ).pack(pady=(40, 30), padx=20)
+        ).pack(pady=(40, 20))
         
         texto_instrucciones = (
             "1. Seleccione las fechas 'Desde' y 'Hasta'\n"
@@ -74,16 +80,18 @@ class FrmGenerarReportes(ctk.CTkFrame):
             "4. El documento se abrirá automáticamente."
         )
         
+        # Texto Centrado
         lbl_texto = ctk.CTkLabel(
-            frame_inst, 
+            container, 
             text=texto_instrucciones, 
-            font=("Arial", 22), # Letra Muy Grande
+            font=("Arial", 20), # Misma letra que en Visitas
             text_color="#333333",
-            justify="left"
+            justify="center" # Centramos renglón por renglón
         )
-        lbl_texto.pack(pady=10, padx=30, anchor="w")
+        lbl_texto.pack(pady=10, anchor="center")
         
-        ctk.CTkLabel(frame_inst, text="📄", font=("Arial", 120)).pack(side="bottom", pady=40)
+        # Icono Centrado
+        ctk.CTkLabel(container, text="📄", font=("Arial", 100)).pack(side="bottom", pady=40, anchor="center")
 
     def crear_panel_botones(self, row, col):
         # Frame desplazable por si hay muchos reportes

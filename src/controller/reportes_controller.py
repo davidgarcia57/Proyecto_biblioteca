@@ -5,6 +5,7 @@ import subprocess
 from datetime import datetime
 from src.model.Ejemplar import Ejemplar
 from src.model.Prestamo import Prestamo
+from src.utils import resource_path
 from src.model.Visita import Visita
 
 class ReportesController:
@@ -14,17 +15,12 @@ class ReportesController:
         Método privado para dibujar el logo y encabezado institucional.
         Se usa rutas dinámicas para que funcione en cualquier computadora.
         """
-        # 1. Construimos la ruta segura:  controlador -> src -> raiz -> resources
-        # __file__ es este archivo. Hacemos dirname 3 veces para subir 3 carpetas.
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        ruta_logo = os.path.join(base_dir, "resources", "logo.png")
-
+        ruta_logo = resource_path("resources/logo.png")
+        
         try:
-            # Dibujamos el logo en la esquina superior izquierda
-            # Coordenadas (x, y, ancho, alto)
-            c.drawImage(ruta_logo, 40, 730, width=60, height=60, mask='auto') 
+            c.drawImage(ruta_logo, 40, 730, width=60, height=60, mask='auto')
         except Exception as e:
-            print(f"No se pudo cargar el logo: {e}")
+            print(f"Error logo PDF: {e}")
         
         # Opcional: Agregar nombre de la institución como texto fijo si gustas
         c.setFont("Helvetica-Bold", 10)
@@ -94,48 +90,103 @@ class ReportesController:
 
     # 1. REPORTE DE LIBROS (Con columnas nuevas: Adq, Titulo, Autor, Clasif, Fecha)
     def generar_reporte_registros(self, mes_ini, anio_ini, mes_fin, anio_fin, ruta_archivo):
-        f_inicio = f"{anio_ini}-{mes_ini}-01"
-        f_fin = f"{anio_fin}-{mes_fin}-28" # Ajuste simple de fin de mes
-        
-        datos = Ejemplar.obtener_por_fecha(f_inicio, f_fin)
-        
         c = canvas.Canvas(ruta_archivo, pagesize=letter)
+        ancho, alto = letter
+        
+        # --- ENCABEZADO ---
         self._encabezado(c)
         
-        c.setFont("Helvetica-Bold", 14)
-        c.drawString(30, 700, f"Reporte de Adquisición de Libros")
-        c.setFont("Helvetica", 10)
-        c.drawString(30, 685, f"Periodo: {mes_ini}/{anio_ini} al {mes_fin}/{anio_fin} | Total: {len(datos)}")
+        # Títulos
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(50, 680, "Reporte Detallado de Adquisiciones")
         
-        # --- ENCABEZADOS NUEVOS ---
-        y = 660
-        c.setFont("Helvetica-Bold", 8)
-        c.drawString(30, y, "ADQUISICIÓN") # numero_copia
-        c.drawString(100, y, "TÍTULO")
-        c.drawString(280, y, "AUTOR")
-        c.drawString(400, y, "CLASIFICACIÓN")
-        c.drawString(490, y, "FECHA")
-        c.line(30, y-5, 580, y-5)
-        y -= 15
+        c.setFont("Helvetica", 12)
+        c.drawString(50, 660, f"Periodo: {mes_ini}/{anio_ini} al {mes_fin}/{anio_fin}")
         
-        c.setFont("Helvetica", 8)
-        for row in datos: 
-            if y < 50: 
-                c.showPage(); self._encabezado(c); y = 700; c.setFont("Helvetica", 8)
+        # Línea divisoria
+        c.setLineWidth(1)
+        c.line(50, 645, 550, 645)
+        
+        # --- OBTENER DATOS COMPLETOS ---
+        fi = f"{anio_ini}-{mes_ini}"
+        ff = f"{anio_fin}-{mes_fin}"
+        datos = Ejemplar.obtener_reporte_detallado(fi, ff)
+        
+        # --- CUERPO DEL REPORTE (ESTILO FICHA) ---
+        y = 620
+        # Definimos alturas de línea
+        h_linea = 14  
+        # Espacio que ocupa cada libro (4 líneas de texto + margen)
+        h_bloque = 70 
 
-            # Recorte de textos largos para que no se encimen
-            titulo = (row[1][:35] + '..') if len(row[1]) > 35 else row[1]
-            autor = (row[2][:20] + '..') if row[2] and len(row[2]) > 20 else (row[2] if row[2] else "S/A")
+        total_libros = len(datos)
+
+        if not datos:
+            c.setFont("Helvetica-Oblique", 12)
+            c.drawString(50, y, "No se encontraron registros en este periodo.")
+        
+        c.setFont("Helvetica", 10)
+
+        for row in datos:
+            # Desempaquetamos los datos del SQL (12 columnas)
+            (id_e, titulo, autor, editorial, isbn, anio, 
+             edicion, paginas, dim, ubicacion, estado, fecha) = row
             
-            c.drawString(30, y, str(row[0])) # Adquisición
-            c.drawString(100, y, titulo)
-            c.drawString(280, y, autor)
-            c.drawString(400, y, str(row[3])) # Clasificación
-            c.drawString(490, y, str(row[4].strftime("%d/%m/%Y"))) # Fecha corta
-            y -= 12
+            # --- CONTROL DE PAGINACIÓN ---
+            # Si el bloque ya no cabe en la hoja, creamos nueva página
+            if y < 80: 
+                c.showPage()
+                self._encabezado(c) # Repetimos logo
+                y = 700             # Reiniciamos altura
+                c.setFont("Helvetica", 10)
             
+            # --- DIBUJAR BLOQUE DEL LIBRO ---
+            
+            # LÍNEA 1: ID y Título (Resaltado)
+            c.setFont("Helvetica-Bold", 11)
+            titulo_recortado = (titulo[:75] + '..') if len(titulo) > 75 else titulo
+            c.drawString(50, y, f"ID: {id_e}  |  {titulo_recortado}")
+            
+            # LÍNEA 2: Autor y Editorial
+            c.setFont("Helvetica", 10)
+            y -= h_linea
+            info_aut = f"Autor: {autor}   |   Editorial: {editorial}   |   Año: {anio}"
+            c.drawString(70, y, info_aut) # Indentación visual (70 en vez de 50)
+            
+            # LÍNEA 3: Detalles Técnicos
+            y -= h_linea
+            # Manejo de N/A para que se vea limpio
+            isbn = isbn if isbn else "S/I"
+            pag = f"{paginas} págs" if paginas else ""
+            dim = dim if dim else ""
+            
+            info_tec = f"ISBN: {isbn}   |   Edición: {edicion}   |   {pag}   {dim}"
+            c.drawString(70, y, info_tec)
+            
+            # LÍNEA 4: Inventario (Ubicación y Estado)
+            y -= h_linea
+            c.setFillColorRGB(0.2, 0.4, 0.2) # Verde oscuro para datos de inventario
+            info_inv = f"Ubicación: {ubicacion}   |   Estado: {estado}   |   Fecha Alta: {fecha}"
+            c.drawString(70, y, info_inv)
+            c.setFillColorRGB(0, 0, 0) # Volver a negro
+
+            # SEPARADOR (Línea punteada gris)
+            y -= 15
+            c.setStrokeColorRGB(0.8, 0.8, 0.8) # Gris claro
+            c.setDash(1, 4) # Punteado
+            c.line(50, y, 550, y)
+            c.setDash([]) # Quitar punteado para lo demás
+            c.setStrokeColorRGB(0, 0, 0) # Volver a negro
+            
+            # Preparamos Y para el siguiente bloque
+            y -= 20
+
+        # Pie de página final con total
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(450, 30, f"Total Registros: {total_libros}")
+        
         c.save()
-        self._abrir_pdf(ruta_archivo)
+        subprocess.Popen([ruta_archivo], shell=True)
 
     # 2. REPORTE DE PRÉSTAMOS (Columnas: Libro, Solicitante, Tel, Fecha, Estado)
     def generar_reporte_prestamos(self, mes_ini, anio_ini, mes_fin, anio_fin, ruta_archivo):
