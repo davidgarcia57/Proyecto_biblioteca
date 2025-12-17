@@ -124,6 +124,7 @@ class PopupFicha(ctk.CTkToplevel):
             'id_obra': self.obra.get('id_obra'),
             'titulo': self.entries['titulo'].get(),
             'isbn': self.entries['isbn'].get(),
+            'editorial_nombre': self.entries['editorial'].get(), #Ya se agregó la editorial
             'clasificacion': self.entries['clasificacion'].get(),
             'idioma': self.entries['idioma'].get(),
             'anio': self.entries['anio'].get(),

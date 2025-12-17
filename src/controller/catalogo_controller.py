@@ -4,6 +4,7 @@ from src.model.Editorial import Editorial
 from src.model.Autor import Autor
 from src.model.Obra import Obra
 from src.model.Ejemplar import Ejemplar
+from tkinter import messagebox
 
 class CatalogoController:
     def __init__(self, view_container, id_usuario_actual, on_close=None):
@@ -24,11 +25,9 @@ class CatalogoController:
             return
 
         for clave, valor in datos.items():
-            # Si el valor es None o está vacío (sin contar espacios)
             if valor is None or str(valor).strip() == "":
                 datos[clave] = "N/A"
 
-        # Usamos el Context Manager
         with self.db as conn:
             if not conn:
                 self.view.mostrar_mensaje("Error de conexión a la BD", True)
@@ -36,11 +35,9 @@ class CatalogoController:
             
             cursor = conn.cursor()
             try:
-                # Iniciamos transacción
                 conn.begin() 
 
                 # Editorial
-                # Usamos los datos ya limpios (si venía vacío, ahora dice "N/A")
                 editorial = Editorial(datos.get("editorial_nombre"), datos.get("lugar_publicacion"))
                 id_editorial = editorial.guardar(cursor) 
 
@@ -67,7 +64,7 @@ class CatalogoController:
                 )
                 id_obra = obra.guardar(cursor)
 
-                #Autor
+                # Autor
                 autor = Autor(datos.get("autor_nombre"))
                 id_autor = autor.guardar(cursor)
                 
@@ -81,7 +78,6 @@ class CatalogoController:
                 )
                 id_generado = ejemplar.guardar(cursor)
 
-                # Si todo sale bien p.p:
                 conn.commit()
                 self.view.confirmar_registro(id_generado)
 
@@ -94,6 +90,41 @@ class CatalogoController:
 
     def obtener_info_ejemplar(self, id_ejemplar):
         return Ejemplar.obtener_info(id_ejemplar)
+
+    # Modificado para arreglar el refresh
+    def editar_editorial(self, id_editorial, nuevo_nombre, nueva_ciudad, vista_actual=None):
+        
+        # Determinamos a quién responderle (si no mandan vista, usamos la default)
+        target_view = vista_actual if vista_actual else self.view
+
+        if not nuevo_nombre or str(nuevo_nombre).strip() == "":
+            messagebox.showwarning("Aviso", "El nombre es obligatorio.")
+            return
+
+        with self.db as conn:
+            if conn:
+                try:
+                    cursor = conn.cursor()
+                
+                    editorial_temp = Editorial(nuevo_nombre, nueva_ciudad)
+                    
+                    # Llamamos al método actualizar del Modelo
+                    if editorial_temp.actualizar(cursor, id_editorial):
+                        conn.commit() 
+                        
+                        messagebox.showinfo("Éxito", "Editorial actualizada correctamente.")
+                        
+                        # Aqui esta el refresh
+                        if hasattr(target_view, 'listar_editoriales'):
+                            target_view.listar_editoriales()
+                        elif hasattr(target_view, 'cargar_datos'):
+                            target_view.cargar_datos()
+                    else:
+                        messagebox.showerror("Error", "No se encontró el registro o no hubo cambios.")
+                        
+                except Exception as e:
+                    print(f"Error al editar: {e}")
+                    messagebox.showerror("Error", f"Error técnico: {e}")
 
     def procesar_baja(self, id_ejemplar):
         exito, msg = Ejemplar.dar_de_baja(id_ejemplar)

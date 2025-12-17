@@ -19,6 +19,14 @@ class Editorial:
             self.id_editorial = cursor.lastrowid
         
         return self.id_editorial
+    def actualizar(self, cursor, id_editorial):
+        # CORREGIDO: Ahora incluye ciudad
+        sql_update = "UPDATE editoriales SET nombre = %s, ciudad = %s WHERE id_editorial = %s"
+        
+        # Pasamos self.ciudad también
+        cursor.execute(sql_update, (self.nombre, self.ciudad, id_editorial))
+        
+        return cursor.rowcount >= 0
     
     @staticmethod
     def obtener_id_por_nombre(cursor, nombre):

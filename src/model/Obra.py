@@ -172,16 +172,16 @@ class Obra:
         return detalle
 
     def actualizar(self, cursor):
-        """Actualiza los datos básicos de la obra"""
+        """Actualiza los datos de la obra, incluyendo la editorial"""
         sql = """
             UPDATE obras SET 
-                titulo=%s, isbn=%s, anio_publicacion=%s, clasificacion=%s,
+                titulo=%s, isbn=%s, id_editorial=%s, anio_publicacion=%s, clasificacion=%s,
                 paginas=%s, dimensiones=%s, descripcion=%s,
                 edicion=%s, idioma=%s, serie=%s
             WHERE id_obra=%s
         """
         vals = (
-            self.titulo, self.isbn, self.anio_publicacion, self.clasificacion,
+            self.titulo, self.isbn, self.id_editorial, self.anio_publicacion, self.clasificacion,
             self.paginas, self.dimensiones, self.descripcion,
             self.edicion, self.idioma, self.serie, 
             self.id_obra

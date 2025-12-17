@@ -3,6 +3,7 @@ from src.view.inventario.frm_buscar_libro import FrmBuscarLibro
 from src.view.inventario.popup_ficha import PopupFicha
 from src.model.Obra import Obra
 from src.model.Ejemplar import Ejemplar
+from src.model.Editorial import Editorial 
 from tkinter import messagebox
 
 class BusquedaController:
@@ -50,11 +51,22 @@ class BusquedaController:
             if conn:
                 try:
                     cursor = conn.cursor()
-                    # Aquí instanciamos para facilitar el pase de argumentos
+                    
+                    # 1. GESTIONAR LA EDITORIAL (Buscar ID o Crear nueva)
+                    nombre_ed = datos_nuevos.get('editorial_nombre')
+                    id_editorial_final = None
+                    
+                    if nombre_ed:
+                        # Usamos la clase Editorial para buscar o crear
+                        ed_obj = Editorial(nombre_ed)
+                        # Este método ya tiene la lógica de "si existe devuelve ID, si no crea"
+                        id_editorial_final = ed_obj.guardar(cursor)
+
+                    # 2. ACTUALIZAR LA OBRA
                     obra_tmp = Obra(
                         id_obra=datos_nuevos['id_obra'],
                         titulo=datos_nuevos['titulo'],
-                        id_editorial=None, # No editamos esto
+                        id_editorial=id_editorial_final, 
                         isbn=datos_nuevos['isbn'],
                         idioma=datos_nuevos['idioma'],
                         anio_publicacion=datos_nuevos['anio'],
@@ -63,7 +75,6 @@ class BusquedaController:
                         paginas=datos_nuevos['paginas'],
                         dimensiones=datos_nuevos['dimensiones'],
                         descripcion=datos_nuevos['descripcion']
-                        # Los demás campos se mantienen o ignoran en la query de update simple
                     )
                     
                     if obra_tmp.actualizar(cursor):
@@ -71,6 +82,7 @@ class BusquedaController:
                         messagebox.showinfo("Éxito", "Ficha del libro actualizada correctamente.")
                         # Refrescamos la vista principal
                         self.realizar_busqueda(self.view.txt_busqueda.get())
+                        if hasattr(self, 'popup'): self.popup.destroy()
                     else:
                         messagebox.showerror("Error", "No se pudieron guardar los cambios.")
                         
